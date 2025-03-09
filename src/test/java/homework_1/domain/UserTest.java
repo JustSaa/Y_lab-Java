@@ -2,8 +2,6 @@ package homework_1.domain;
 
 import org.junit.jupiter.api.Test;
 
-import java.util.UUID;
-
 import static org.assertj.core.api.Assertions.*;
 
 class UserTest {
@@ -23,9 +21,8 @@ class UserTest {
 
     @Test
     void testEqualsAndHashCode() {
-        UUID userId = UUID.randomUUID();
-        User user1 = new User(userId, "Ivan", "ivan@mail.com", "pass", 1000);
-        User user2 = new User(userId, "Иван Иванов", "ivan@mail.com", "123", 3000);
+        User user1 = new User("Ivan", "ivan@mail.com", "pass", 1000.00);
+        User user2 = new User("Иван Иванов", "ivan@mail.com", "123", 3000);
 
         assertThat(user1).isEqualTo(user2);
         assertThat(user1.hashCode()).isEqualTo(user2.hashCode());

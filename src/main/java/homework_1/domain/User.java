@@ -1,17 +1,11 @@
 package homework_1.domain;
 
 import java.util.Objects;
-import java.util.UUID;
 
 /**
  * Сущность пользователя.
  */
 public class User {
-    /**
-     * Уникальный идентификатор пользователя
-     */
-    private final UUID id;
-
     /**
      * Имя пользователя
      */
@@ -33,6 +27,15 @@ public class User {
     private double monthlyBudget;
 
     /**
+     * Является ли пользователь админом
+     */
+    private boolean isAdmin = false;
+    /**
+     * Заблокирован ли пользователь
+     */
+    private boolean isBlocked = false;
+
+    /**
      * Конструктор с основными полями (без monthlyBudget).
      *
      * @param name     имя пользователя
@@ -40,14 +43,13 @@ public class User {
      * @param password пароль
      */
     public User(String name, String email, String password) {
-        this.id = UUID.randomUUID();
         this.name = name;
         this.email = email;
         this.password = password;
     }
 
     /**
-     * Конструктор со всеми полями, кроме ID.
+     * Конструктор со всеми полями.
      *
      * @param name          имя пользователя
      * @param email         email
@@ -55,28 +57,8 @@ public class User {
      * @param monthlyBudget месячный бюджет
      */
     public User(String name, String email, String password, double monthlyBudget) {
-        this(UUID.randomUUID(), name, email, password, monthlyBudget);
-    }
-
-    /**
-     * Конструктор с полным списком полей (для восстановления пользователя из репозитория).
-     *
-     * @param id            ID пользователя
-     * @param name          имя пользователя
-     * @param email         email
-     * @param password      пароль
-     * @param monthlyBudget месячный бюджет
-     */
-    public User(UUID id, String name, String email, String password, double monthlyBudget) {
-        this.id = id;
-        this.name = name;
-        this.email = email;
-        this.password = password;
+        this(name, email, password);
         this.monthlyBudget = monthlyBudget;
-    }
-
-    public UUID getId() {
-        return id;
     }
 
     public String getName() {
@@ -111,6 +93,22 @@ public class User {
         this.monthlyBudget = monthlyBudget;
     }
 
+    public boolean isAdmin() {
+        return isAdmin;
+    }
+
+    public void setAdmin(boolean admin) {
+        isAdmin = admin;
+    }
+
+    public boolean isBlocked() {
+        return isBlocked;
+    }
+
+    public void setBlocked(boolean blocked) {
+        isBlocked = blocked;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -120,19 +118,18 @@ public class User {
             return false;
         }
         User user = (User) o;
-        return id.equals(user.id);
+        return email.equals(user.email);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return Objects.hash(email);
     }
 
     @Override
     public String toString() {
         return "User{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
+                "name='" + name + '\'' +
                 ", email='" + email + '\'' +
                 ", monthlyBudget=" + monthlyBudget +
                 '}';

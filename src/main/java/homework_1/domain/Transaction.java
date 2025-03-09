@@ -15,9 +15,9 @@ public class Transaction {
     private final UUID id;
 
     /**
-     * Идентификатор пользователя, которому принадлежит транзакция.
+     * Почта пользователя, которому принадлежит транзакция.
      */
-    private final UUID userId;
+    private final String userEmail;
 
     /**
      * Сумма транзакции.
@@ -47,17 +47,17 @@ public class Transaction {
     /**
      * Конструктор для создания новой транзакции.
      *
-     * @param userId      идентификатор пользователя
+     * @param userEmail   почта пользователя
      * @param amount      сумма транзакции
      * @param type        тип транзакции (доход или расход)
      * @param category    категория транзакции
      * @param date        дата транзакции
      * @param description описание транзакции
      */
-    public Transaction(UUID userId, double amount, TransactionType type,
+    public Transaction(String userEmail, double amount, TransactionType type,
                        Category category, LocalDate date, String description) {
         this.id = UUID.randomUUID();
-        this.userId = userId;
+        this.userEmail = userEmail;
         this.amount = amount;
         this.type = type;
         this.category = category;
@@ -75,22 +75,22 @@ public class Transaction {
         }
         Transaction that = (Transaction) o;
         return Double.compare(that.amount, amount) == 0
-                && Objects.equals(id, that.id) && Objects.equals(userId, that.userId)
+                && Objects.equals(id, that.id) && Objects.equals(userEmail, that.userEmail)
                 && type == that.type && category == that.category && Objects.equals(date, that.date)
                 && Objects.equals(description, that.description);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, userId, amount, type, category, date, description);
+        return Objects.hash(id, userEmail, amount, type, category, date, description);
     }
 
     public UUID getId() {
         return id;
     }
 
-    public UUID getUserId() {
-        return userId;
+    public String getUserEmail() {
+        return userEmail;
     }
 
     public double getAmount() {
@@ -137,7 +137,7 @@ public class Transaction {
     public String toString() {
         return "Transaction{" +
                 "id=" + id +
-                ", userId=" + userId +
+                ", userEmail=" + userEmail +
                 ", amount=" + amount +
                 ", type=" + type +
                 ", category=" + category +

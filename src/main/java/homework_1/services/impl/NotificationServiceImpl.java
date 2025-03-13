@@ -1,11 +1,11 @@
-package homework_1.services;
+package homework_1.services.impl;
 
-import homework_1.repositories.NotificationService;
+import homework_1.services.NotificationService;
 
 /**
  * Реализация сервиса уведомлений (консольный вывод).
  */
-public class NotificationServiceImplementation implements NotificationService {
+public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public void sendNotification(String userEmail, String message) {

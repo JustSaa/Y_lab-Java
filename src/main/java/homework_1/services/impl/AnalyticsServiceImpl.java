@@ -1,9 +1,10 @@
-package homework_1.services;
+package homework_1.services.impl;
 
 import homework_1.domain.Transaction;
 import homework_1.domain.TransactionType;
 import homework_1.domain.Category;
 import homework_1.repositories.TransactionRepository;
+import homework_1.services.AnalyticsService;
 
 import java.time.LocalDate;
 import java.util.Map;
@@ -12,11 +13,11 @@ import java.util.stream.Collectors;
 /**
  * Реализация сервиса аналитики финансов.
  */
-public class AnalyticsServiceImplementation implements AnalyticsService {
+public class AnalyticsServiceImpl implements AnalyticsService {
 
     private final TransactionRepository transactionRepository;
 
-    public AnalyticsServiceImplementation(TransactionRepository transactionRepository) {
+    public AnalyticsServiceImpl(TransactionRepository transactionRepository) {
         this.transactionRepository = transactionRepository;
     }
 

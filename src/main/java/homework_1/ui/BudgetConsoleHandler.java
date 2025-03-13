@@ -2,7 +2,8 @@ package homework_1.ui;
 
 import homework_1.domain.User;
 import homework_1.services.AuthService;
-import homework_1.services.TransactionInputPort;
+import homework_1.services.BudgetService;
+import homework_1.services.TransactionService;
 
 import java.util.Scanner;
 
@@ -10,13 +11,11 @@ import java.util.Scanner;
  * Обработчик консольного взаимодействия с бюджетом пользователя.
  */
 public class BudgetConsoleHandler {
-    private final AuthService authService;
-    private final TransactionInputPort transactionService;
+    private final BudgetService budgetService;
     private final Scanner scanner;
 
-    public BudgetConsoleHandler(AuthService authService, TransactionInputPort transactionService, Scanner scanner) {
-        this.authService = authService;
-        this.transactionService = transactionService;
+    public BudgetConsoleHandler(BudgetService budgetService, Scanner scanner) {
+        this.budgetService = budgetService;
         this.scanner = scanner;
     }
 
@@ -30,7 +29,7 @@ public class BudgetConsoleHandler {
         System.out.println("Введите новый месячный бюджет:");
         try {
             double budget = Double.parseDouble(scanner.nextLine());
-            authService.setUserBudget(user.getEmail(), budget);
+            budgetService.setUserBudget(user.getEmail(), budget);
             System.out.println("Бюджет установлен: " + budget);
         } catch (NumberFormatException e) {
             System.out.println("Ошибка: Некорректный ввод числа.");
@@ -50,7 +49,7 @@ public class BudgetConsoleHandler {
             return;
         }
 
-        boolean exceeded = transactionService.isBudgetExceeded(user.getEmail());
+        boolean exceeded = budgetService.isBudgetExceeded(user.getEmail());
 
         if (exceeded) {
             System.out.println("Внимание! Ваши расходы превысили установленный бюджет.");

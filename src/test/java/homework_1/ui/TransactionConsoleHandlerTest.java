@@ -1,7 +1,7 @@
 package homework_1.ui;
 
 import homework_1.domain.*;
-import homework_1.services.TransactionInputPort;
+import homework_1.services.TransactionService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -14,14 +14,14 @@ import static org.mockito.Mockito.*;
 
 class TransactionConsoleHandlerTest {
 
-    private TransactionInputPort transactionService;
+    private TransactionService transactionService;
     private TransactionConsoleHandler consoleHandler;
     private Scanner scanner;
     private User user;
 
     @BeforeEach
     void setUp() {
-        transactionService = Mockito.mock(TransactionInputPort.class);
+        transactionService = Mockito.mock(TransactionService.class);
         scanner = new Scanner("");
         consoleHandler = new TransactionConsoleHandler(transactionService, scanner);
         user = new User("Тест", "test@mail.com", "password");

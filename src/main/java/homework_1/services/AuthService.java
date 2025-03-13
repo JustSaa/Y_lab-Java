@@ -58,14 +58,6 @@ public interface AuthService {
     void deleteUser(String adminEmail, String userEmail);
 
     /**
-     * Устанавливает бюджет пользователя.
-     *
-     * @param email  email пользователя
-     * @param budget сумма бюджета
-     */
-    void setUserBudget(String email, double budget);
-
-    /**
      * Получает список всех пользователей.
      *
      * @return список пользователей

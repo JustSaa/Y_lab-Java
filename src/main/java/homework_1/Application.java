@@ -1,13 +1,16 @@
 package homework_1;
 
+import homework_1.repositories.BudgetRepository;
 import homework_1.repositories.GoalRepository;
-import homework_1.repositories.NotificationService;
+import homework_1.repositories.in_memory.InMemoryBudgetRepository;
+import homework_1.services.NotificationService;
 import homework_1.repositories.in_memory.InMemoryGoalRepository;
 import homework_1.repositories.in_memory.InMemoryTransactionRepository;
 import homework_1.repositories.in_memory.InMemoryUserRepository;
 import homework_1.repositories.TransactionRepository;
 import homework_1.repositories.UserRepository;
 import homework_1.services.*;
+import homework_1.services.impl.*;
 import homework_1.ui.ConsoleAdapter;
 
 public class Application {
@@ -15,16 +18,18 @@ public class Application {
         UserRepository userRepository = new InMemoryUserRepository();
         TransactionRepository transactionRepository = new InMemoryTransactionRepository();
         GoalRepository goalRepository = new InMemoryGoalRepository();
-        NotificationService notificationService = new NotificationServiceImplementation();
+        BudgetRepository budgetRepository = new InMemoryBudgetRepository();
+        NotificationService notificationService = new NotificationServiceImpl();
 
-        AuthServiceImplementation authServiceImplementation = new AuthServiceImplementation(userRepository);
-        TransactionService transactionService = new TransactionService(transactionRepository,
-                userRepository, notificationService);
-        GoalService goalService = new GoalService(goalRepository);
-        AnalyticsService analyticsService = new AnalyticsServiceImplementation(transactionRepository);
+        BudgetService budgetService = new BudgetServiceImpl(budgetRepository, transactionRepository);
+        AuthService authService = new AuthServiceImpl(userRepository);
+        TransactionService transactionService = new TransactionServiceImpl(transactionRepository,
+                budgetService, notificationService);
+        GoalService goalService = new GoalServiceImpl(goalRepository);
+        AnalyticsService analyticsService = new AnalyticsServiceImpl(transactionRepository);
 
-        ConsoleAdapter consoleAdapter = new ConsoleAdapter(authServiceImplementation, transactionService,
-                goalService, analyticsService);
+        ConsoleAdapter consoleAdapter = new ConsoleAdapter(authService, transactionService,
+                goalService, analyticsService, budgetService);
         consoleAdapter.start();
     }
 }

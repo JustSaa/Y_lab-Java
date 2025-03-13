@@ -12,17 +12,15 @@ class UserTest {
 
         user.setName("Пётр");
         user.setEmail("petr@mail.com");
-        user.setMonthlyBudget(5000);
 
         assertThat(user.getName()).isEqualTo("Пётр");
         assertThat(user.getEmail()).isEqualTo("petr@mail.com");
-        assertThat(user.getMonthlyBudget()).isEqualTo(5000);
     }
 
     @Test
     void testEqualsAndHashCode() {
-        User user1 = new User("Ivan", "ivan@mail.com", "pass", 1000.00);
-        User user2 = new User("Иван Иванов", "ivan@mail.com", "123", 3000);
+        User user1 = new User("Ivan", "ivan@mail.com", "pass");
+        User user2 = new User("Иван Иванов", "ivan@mail.com", "123");
 
         assertThat(user1).isEqualTo(user2);
         assertThat(user1.hashCode()).isEqualTo(user2.hashCode());

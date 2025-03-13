@@ -2,6 +2,7 @@ package homework_1.services;
 
 import homework_1.domain.Goal;
 import homework_1.repositories.GoalRepository;
+import homework_1.services.impl.GoalServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,13 +18,13 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class GoalServiceTest {
+class GoalServiceImplTest {
 
     @Mock
     private GoalRepository goalRepository;
 
     @InjectMocks
-    private GoalService goalService;
+    private GoalServiceImpl goalServiceImpl;
 
     private String userEmail;
     private Goal goal;
@@ -36,14 +37,14 @@ class GoalServiceTest {
 
     @Test
     void createGoal_ShouldSaveGoal() {
-        goalService.createGoal(userEmail, "Путешествие", 10000);
+        goalServiceImpl.createGoal(userEmail, "Путешествие", 10000);
 
         verify(goalRepository, times(1)).save(any(Goal.class));
     }
 
     @Test
     void createGoal_InvalidAmount_ShouldThrowException() {
-        assertThatThrownBy(() -> goalService.createGoal(userEmail, "Путешествие", -100))
+        assertThatThrownBy(() -> goalServiceImpl.createGoal(userEmail, "Путешествие", -100))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Цель должна быть положительной.");
     }
@@ -52,7 +53,7 @@ class GoalServiceTest {
     void getUserGoals_ShouldReturnGoals() {
         when(goalRepository.findByUserEmail(userEmail)).thenReturn(List.of(goal));
 
-        List<Goal> goals = goalService.getUserGoals(userEmail);
+        List<Goal> goals = goalServiceImpl.getUserGoals(userEmail);
 
         assertThat(goals).containsExactly(goal);
     }
@@ -62,7 +63,7 @@ class GoalServiceTest {
         UUID goalId = goal.getId();
         when(goalRepository.findById(goalId)).thenReturn(Optional.of(goal));
 
-        goalService.addToGoal(goalId, 5000);
+        goalServiceImpl.addToGoal(goalId, 5000);
 
         assertThat(goal.getCurrentAmount()).isEqualTo(5000);
         verify(goalRepository, times(1)).update(goal);
@@ -73,7 +74,7 @@ class GoalServiceTest {
         UUID goalId = goal.getId();
         when(goalRepository.findById(goalId)).thenReturn(Optional.of(goal));
 
-        assertThatThrownBy(() -> goalService.addToGoal(goalId, -100))
+        assertThatThrownBy(() -> goalServiceImpl.addToGoal(goalId, -100))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Сумма должна быть положительной.");
     }
@@ -81,7 +82,7 @@ class GoalServiceTest {
     @Test
     void deleteGoal_ShouldCallRepositoryDelete() {
         UUID goalId = goal.getId();
-        goalService.deleteGoal(goalId);
+        goalServiceImpl.deleteGoal(goalId);
 
         verify(goalRepository, times(1)).delete(goalId);
     }

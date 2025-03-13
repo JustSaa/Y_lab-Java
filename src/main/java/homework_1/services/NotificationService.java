@@ -1,4 +1,4 @@
-package homework_1.repositories;
+package homework_1.services;
 
 /**
  * Интерфейс сервиса для отправки уведомлений.

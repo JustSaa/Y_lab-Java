@@ -3,6 +3,7 @@ package homework_1.services;
 import homework_1.repositories.UserRepository;
 import homework_1.common.exceptions.AuthenticationException;
 import homework_1.domain.User;
+import homework_1.services.impl.AuthServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -18,13 +19,13 @@ import static org.mockito.Mockito.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 @ExtendWith(MockitoExtension.class)
-class AuthServiceImplementationTest {
+class AuthServiceImplTest {
 
     @Mock
     private UserRepository userRepository;
 
     @InjectMocks
-    private AuthServiceImplementation authServiceImplementation;
+    private AuthServiceImpl authServiceImpl;
 
     private User user;
 
@@ -37,7 +38,7 @@ class AuthServiceImplementationTest {
     void register_NewUser_Success() {
         when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.empty());
 
-        User createdUser = authServiceImplementation.register(user.getName(), user.getEmail(), user.getPassword());
+        User createdUser = authServiceImpl.register(user.getName(), user.getEmail(), user.getPassword());
 
         assertThat(createdUser).isNotNull();
         assertThat(createdUser.getEmail()).isEqualTo(user.getEmail());
@@ -48,7 +49,7 @@ class AuthServiceImplementationTest {
     void register_ExistingEmail_ThrowsException() {
         when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
 
-        assertThatThrownBy(() -> authServiceImplementation.register(user.getName(), user.getEmail(), user.getPassword()))
+        assertThatThrownBy(() -> authServiceImpl.register(user.getName(), user.getEmail(), user.getPassword()))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Пользователь с таким email уже существует");
 
@@ -59,7 +60,7 @@ class AuthServiceImplementationTest {
     void login_SuccessfulLogin_ReturnsUser() throws AuthenticationException {
         when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
 
-        User loggedInUser = authServiceImplementation.login(user.getEmail(), user.getPassword());
+        User loggedInUser = authServiceImpl.login(user.getEmail(), user.getPassword());
 
         assertThat(loggedInUser).isNotNull();
         assertThat(loggedInUser.getEmail()).isEqualTo(user.getEmail());
@@ -69,7 +70,7 @@ class AuthServiceImplementationTest {
     void login_InvalidPassword_ThrowsException() {
         when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
 
-        assertThatThrownBy(() -> authServiceImplementation.login(user.getEmail(), "wrongpassword"))
+        assertThatThrownBy(() -> authServiceImpl.login(user.getEmail(), "wrongpassword"))
                 .isInstanceOf(AuthenticationException.class)
                 .hasMessageContaining("Неверный email или пароль");
     }
@@ -78,7 +79,7 @@ class AuthServiceImplementationTest {
     void login_UserNotFound_ThrowsException() {
         when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> authServiceImplementation.login(user.getEmail(), user.getPassword()))
+        assertThatThrownBy(() -> authServiceImpl.login(user.getEmail(), user.getPassword()))
                 .isInstanceOf(AuthenticationException.class)
                 .hasMessageContaining("Неверный email или пароль");
     }
@@ -87,7 +88,7 @@ class AuthServiceImplementationTest {
     void updateUser_Success() {
         when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
 
-        authServiceImplementation.updateUser(user.getEmail(), "Новый Иван",
+        authServiceImpl.updateUser(user.getEmail(), "Новый Иван",
                 "new@mail.com", "newpassword");
 
         verify(userRepository).update(argThat(updatedUser ->
@@ -102,7 +103,7 @@ class AuthServiceImplementationTest {
         when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.empty());
 
         assertThatThrownBy(() ->
-                authServiceImplementation.updateUser(user.getEmail(), "Новый Иван",
+                authServiceImpl.updateUser(user.getEmail(), "Новый Иван",
                         "new@mail.com", "newpassword"))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Пользователь не найден");
@@ -112,7 +113,7 @@ class AuthServiceImplementationTest {
     void deleteUser_Success() {
         when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
 
-        authServiceImplementation.deleteUser(user.getEmail());
+        authServiceImpl.deleteUser(user.getEmail());
 
         verify(userRepository).delete(user.getEmail());
     }
@@ -121,7 +122,7 @@ class AuthServiceImplementationTest {
     void deleteUser_NotFound_ThrowsException() {
         when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> authServiceImplementation.deleteUser(user.getEmail()))
+        assertThatThrownBy(() -> authServiceImpl.deleteUser(user.getEmail()))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Пользователь не найден");
     }
@@ -130,7 +131,7 @@ class AuthServiceImplementationTest {
     void getAllUsers_ShouldReturnUsers() {
         when(userRepository.findAll()).thenReturn(List.of(user));
 
-        List<User> users = authServiceImplementation.getAllUsers();
+        List<User> users = authServiceImpl.getAllUsers();
 
         assertThat(users).containsExactly(user);
     }
@@ -142,7 +143,7 @@ class AuthServiceImplementationTest {
 
         when(userRepository.findByEmail(admin.getEmail())).thenReturn(Optional.of(admin));
 
-        authServiceImplementation.blockUser(admin.getEmail(), user.getEmail());
+        authServiceImpl.blockUser(admin.getEmail(), user.getEmail());
 
         verify(userRepository, times(1)).blockUser(user.getEmail());
     }
@@ -154,7 +155,7 @@ class AuthServiceImplementationTest {
 
         when(userRepository.findByEmail(admin.getEmail())).thenReturn(Optional.of(admin));
 
-        authServiceImplementation.deleteUser(admin.getEmail(), user.getEmail());
+        authServiceImpl.deleteUser(admin.getEmail(), user.getEmail());
 
         verify(userRepository, times(1)).delete(user.getEmail());
     }

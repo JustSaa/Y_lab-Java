@@ -22,11 +22,6 @@ public class User {
     private String password;
 
     /**
-     * Установленный месячный бюджет пользователя
-     */
-    private double monthlyBudget;
-
-    /**
      * Является ли пользователь админом
      */
     private boolean isAdmin = false;
@@ -36,7 +31,7 @@ public class User {
     private boolean isBlocked = false;
 
     /**
-     * Конструктор с основными полями (без monthlyBudget).
+     * Конструктор со всеми полями.
      *
      * @param name     имя пользователя
      * @param email    email
@@ -46,19 +41,6 @@ public class User {
         this.name = name;
         this.email = email;
         this.password = password;
-    }
-
-    /**
-     * Конструктор со всеми полями.
-     *
-     * @param name          имя пользователя
-     * @param email         email
-     * @param password      пароль
-     * @param monthlyBudget месячный бюджет
-     */
-    public User(String name, String email, String password, double monthlyBudget) {
-        this(name, email, password);
-        this.monthlyBudget = monthlyBudget;
     }
 
     public String getName() {
@@ -83,14 +65,6 @@ public class User {
 
     public void setPassword(String password) {
         this.password = password;
-    }
-
-    public double getMonthlyBudget() {
-        return monthlyBudget;
-    }
-
-    public void setMonthlyBudget(double monthlyBudget) {
-        this.monthlyBudget = monthlyBudget;
     }
 
     public boolean isAdmin() {
@@ -131,7 +105,6 @@ public class User {
         return "User{" +
                 "name='" + name + '\'' +
                 ", email='" + email + '\'' +
-                ", monthlyBudget=" + monthlyBudget +
                 '}';
     }
 }

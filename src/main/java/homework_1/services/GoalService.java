@@ -1,7 +1,6 @@
 package homework_1.services;
 
 import homework_1.domain.Goal;
-import homework_1.repositories.GoalRepository;
 
 import java.util.List;
 import java.util.UUID;
@@ -9,13 +8,7 @@ import java.util.UUID;
 /**
  * Сервис управления финансовыми целями.
  */
-public class GoalService {
-
-    private final GoalRepository goalRepository;
-
-    public GoalService(GoalRepository goalRepository) {
-        this.goalRepository = goalRepository;
-    }
+public interface GoalService {
 
     /**
      * Создаёт новую цель.
@@ -24,13 +17,7 @@ public class GoalService {
      * @param name         название цели
      * @param targetAmount сумма, которую нужно накопить
      */
-    public void createGoal(String userEmail, String name, double targetAmount) {
-        if (targetAmount <= 0) {
-            throw new IllegalArgumentException("Цель должна быть положительной.");
-        }
-        Goal goal = new Goal(userEmail, name, targetAmount);
-        goalRepository.save(goal);
-    }
+    void createGoal(String userEmail, String name, double targetAmount);
 
     /**
      * Возвращает все цели пользователя.
@@ -38,9 +25,7 @@ public class GoalService {
      * @param userEmail почта пользователя
      * @return список целей
      */
-    public List<Goal> getUserGoals(String userEmail) {
-        return goalRepository.findByUserEmail(userEmail);
-    }
+    List<Goal> getUserGoals(String userEmail);
 
     /**
      * Пополняет сумму накопления цели.
@@ -48,24 +33,12 @@ public class GoalService {
      * @param goalId идентификатор цели
      * @param amount сумма для пополнения
      */
-    public void addToGoal(UUID goalId, double amount) {
-        Goal goal = goalRepository.findById(goalId)
-                .orElseThrow(() -> new IllegalArgumentException("Цель не найдена."));
-
-        if (amount <= 0) {
-            throw new IllegalArgumentException("Сумма должна быть положительной.");
-        }
-
-        goal.addToGoal(amount);
-        goalRepository.update(goal);
-    }
+    void addToGoal(UUID goalId, double amount);
 
     /**
      * Удаляет цель.
      *
      * @param goalId идентификатор цели
      */
-    public void deleteGoal(UUID goalId) {
-        goalRepository.delete(goalId);
-    }
+    void deleteGoal(UUID goalId);
 }

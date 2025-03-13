@@ -1,6 +1,5 @@
 package homework_1.repositories.in_memory;
 
-import homework_1.repositories.in_memory.InMemoryUserRepository;
 import homework_1.domain.User;
 import org.junit.jupiter.api.Test;
 

@@ -1,12 +1,9 @@
 package homework_1.services;
 
-import homework_1.domain.Category;
-import homework_1.domain.Transaction;
-import homework_1.domain.TransactionType;
-import homework_1.domain.User;
-import homework_1.repositories.NotificationService;
+import homework_1.domain.*;
 import homework_1.repositories.TransactionRepository;
 import homework_1.repositories.UserRepository;
+import homework_1.services.impl.TransactionServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -23,7 +20,8 @@ class NotificationServiceTest {
     private NotificationService notificationService;
     private TransactionRepository transactionRepository;
     private UserRepository userRepository;
-    private TransactionService transactionService;
+    private TransactionServiceImpl transactionServiceImpl;
+    private BudgetService budgetService;
 
     private final String testEmail = "test@mail.com";
 
@@ -32,7 +30,8 @@ class NotificationServiceTest {
         notificationService = Mockito.mock(NotificationService.class);
         transactionRepository = Mockito.mock(TransactionRepository.class);
         userRepository = Mockito.mock(UserRepository.class);
-        transactionService = new TransactionService(transactionRepository, userRepository, notificationService);
+        budgetService = Mockito.mock(BudgetService.class);
+        transactionServiceImpl = new TransactionServiceImpl(transactionRepository, budgetService, notificationService);
     }
 
     @Test
@@ -44,35 +43,35 @@ class NotificationServiceTest {
     @Test
     void sendNotification_WhenBudgetExceeded_ShouldBeTriggered() {
         User user = new User("Тест", testEmail, "password");
-        user.setMonthlyBudget(500);
+        Budget budget = new Budget(testEmail, 500);
 
-        when(userRepository.findByEmail(testEmail)).thenReturn(Optional.of(user));
-        when(transactionRepository.findByUserEmail(testEmail))
+        when(budgetService.getUserBudget(testEmail)).thenReturn(Optional.of(budget));
+        when(transactionRepository.findByUserEmailAndType(testEmail, TransactionType.EXPENSE))
                 .thenReturn(List.of(new Transaction(testEmail, 600, TransactionType.EXPENSE, Category.FOOD, LocalDate.now(), "Еда")));
 
         Transaction transaction = new Transaction(testEmail, 200, TransactionType.EXPENSE, Category.TRANSPORT, LocalDate.now(), "Такси");
 
-        assertThatThrownBy(() -> transactionService.createTransaction(transaction))
+        assertThatThrownBy(() -> transactionServiceImpl.createTransaction(transaction))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("Ваши расходы превышают установленный бюджет!");
 
         verify(notificationService, times(1))
-                .sendNotification(eq(testEmail), contains("превысили установленный бюджет"));
+                .sendNotification(eq(testEmail), contains("Ваши расходы превысили установленный бюджет!"));
     }
 
     @Test
     void sendNotification_WhenBudgetNotExceeded_ShouldNotBeTriggered() {
         User user = new User("Тест", testEmail, "password");
-        user.setMonthlyBudget(2000);
+        Budget budget = new Budget(testEmail, 500);
 
-        when(userRepository.findByEmail(testEmail)).thenReturn(Optional.of(user));
+        when(budgetService.getUserBudget(testEmail)).thenReturn(Optional.of(budget));
 
         when(transactionRepository.findByUserEmail(testEmail))
                 .thenReturn(List.of(new Transaction(testEmail, 600, TransactionType.EXPENSE, Category.FOOD, LocalDate.now(), "Еда")));
 
         Transaction transaction = new Transaction(testEmail, 200, TransactionType.EXPENSE, Category.TRANSPORT, LocalDate.now(), "Такси");
 
-        transactionService.createTransaction(transaction);
+        transactionServiceImpl.createTransaction(transaction);
 
         verify(notificationService, never())
                 .sendNotification(anyString(), anyString());

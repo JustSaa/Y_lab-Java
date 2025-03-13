@@ -2,7 +2,7 @@ package homework_1.ui;
 
 import homework_1.domain.Goal;
 import homework_1.domain.User;
-import homework_1.services.GoalService;
+import homework_1.services.impl.GoalServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -15,16 +15,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 class GoalConsoleHandlerTest {
-    private GoalService goalService;
+    private GoalServiceImpl goalServiceImpl;
     private Scanner scanner;
     private GoalConsoleHandler goalConsoleHandler;
     private User testUser;
 
     @BeforeEach
     void setUp() {
-        goalService = mock(GoalService.class);
+        goalServiceImpl = mock(GoalServiceImpl.class);
         scanner = mock(Scanner.class);
-        goalConsoleHandler = new GoalConsoleHandler(goalService, scanner);
+        goalConsoleHandler = new GoalConsoleHandler(goalServiceImpl, scanner);
         testUser = new User("Иван Иванов", "test@example.com", "password123");
     }
 
@@ -38,7 +38,7 @@ class GoalConsoleHandlerTest {
         ArgumentCaptor<String> nameCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<Double> amountCaptor = ArgumentCaptor.forClass(Double.class);
 
-        verify(goalService, times(1)).createGoal(emailCaptor.capture(), nameCaptor.capture(), amountCaptor.capture());
+        verify(goalServiceImpl, times(1)).createGoal(emailCaptor.capture(), nameCaptor.capture(), amountCaptor.capture());
 
         assertThat(emailCaptor.getValue()).isEqualTo("test@example.com");
         assertThat(nameCaptor.getValue()).isEqualTo("Машина");
@@ -51,11 +51,11 @@ class GoalConsoleHandlerTest {
                 new Goal("test@example.com", "Машина", 100000),
                 new Goal("test@example.com", "Отпуск", 50000)
         );
-        when(goalService.getUserGoals(testUser.getEmail())).thenReturn(goals);
+        when(goalServiceImpl.getUserGoals(testUser.getEmail())).thenReturn(goals);
 
         goalConsoleHandler.showGoals(testUser);
 
-        verify(goalService, times(1)).getUserGoals(testUser.getEmail());
+        verify(goalServiceImpl, times(1)).getUserGoals(testUser.getEmail());
     }
 
     @Test
@@ -65,7 +65,7 @@ class GoalConsoleHandlerTest {
 
         goalConsoleHandler.addToGoal();
 
-        verify(goalService, times(1)).addToGoal(goalId, 20000);
+        verify(goalServiceImpl, times(1)).addToGoal(goalId, 20000);
     }
 
     @Test
@@ -75,6 +75,6 @@ class GoalConsoleHandlerTest {
 
         goalConsoleHandler.deleteGoal();
 
-        verify(goalService, times(1)).deleteGoal(goalId);
+        verify(goalServiceImpl, times(1)).deleteGoal(goalId);
     }
 }

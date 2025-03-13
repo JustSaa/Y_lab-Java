@@ -2,17 +2,17 @@ package homework_1.ui;
 
 import homework_1.common.utils.Validator;
 import homework_1.domain.*;
-import homework_1.services.TransactionInputPort;
+import homework_1.services.TransactionService;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Scanner;
 
 public class TransactionConsoleHandler {
-    private final TransactionInputPort transactionService;
+    private final TransactionService transactionService;
     private final Scanner scanner;
 
-    public TransactionConsoleHandler(TransactionInputPort transactionService, Scanner scanner) {
+    public TransactionConsoleHandler(TransactionService transactionService, Scanner scanner) {
         this.transactionService = transactionService;
         this.scanner = scanner;
     }

@@ -3,6 +3,7 @@ package homework_1.ui;
 import homework_1.domain.Goal;
 import homework_1.domain.User;
 import homework_1.services.GoalService;
+import homework_1.services.impl.GoalServiceImpl;
 
 import java.util.List;
 import java.util.Scanner;

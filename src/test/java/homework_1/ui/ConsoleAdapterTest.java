@@ -1,9 +1,7 @@
 package homework_1.ui;
 
-import homework_1.services.AnalyticsService;
-import homework_1.services.AuthService;
-import homework_1.services.GoalService;
-import homework_1.services.TransactionInputPort;
+import homework_1.services.*;
+import homework_1.services.impl.GoalServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -15,14 +13,15 @@ import static org.mockito.Mockito.*;
 class ConsoleAdapterTest {
     private ConsoleAdapter consoleAdapter;
     private AuthService authService;
-    private TransactionInputPort transactionService;
+    private TransactionService transactionService;
     private GoalService goalService;
     private AnalyticsService analyticsService;
+    private BudgetService budgetService;
 
     @BeforeEach
     void setUp() {
         authService = mock(AuthService.class);
-        transactionService = mock(TransactionInputPort.class);
+        transactionService = mock(TransactionService.class);
         goalService = mock(GoalService.class);
         analyticsService = mock(AnalyticsService.class);
     }
@@ -49,7 +48,7 @@ class ConsoleAdapterTest {
         ByteArrayInputStream testInput = new ByteArrayInputStream(data.getBytes());
         System.setIn(testInput);
 
-        consoleAdapter = new ConsoleAdapter(authService, transactionService, goalService, analyticsService);
+        consoleAdapter = new ConsoleAdapter(authService, transactionService, goalService, analyticsService, budgetService);
 
         System.setIn(backupInputStream);
     }

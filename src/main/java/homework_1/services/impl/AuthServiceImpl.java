@@ -1,8 +1,9 @@
-package homework_1.services;
+package homework_1.services.impl;
 
 import homework_1.repositories.UserRepository;
 import homework_1.common.exceptions.AuthenticationException;
 import homework_1.domain.User;
+import homework_1.services.AuthService;
 
 import java.util.Optional;
 import java.util.List;
@@ -10,11 +11,11 @@ import java.util.List;
 /**
  * Реализация сервиса авторизации.
  */
-public class AuthServiceImplementation implements AuthService {
+public class AuthServiceImpl implements AuthService {
 
     private final UserRepository userRepository;
 
-    public AuthServiceImplementation(UserRepository userRepository) {
+    public AuthServiceImpl(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
 
@@ -84,24 +85,6 @@ public class AuthServiceImplementation implements AuthService {
             throw new IllegalArgumentException("Пользователь не найден.");
         }
         userRepository.delete(email);
-    }
-
-    /**
-     * Устанавливает бюджет пользователя.
-     *
-     * @param email  email пользователя
-     * @param budget сумма бюджета
-     */
-    public void setUserBudget(String email, double budget) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("Пользователь не найден"));
-
-        if (budget < 0) {
-            throw new IllegalArgumentException("Бюджет не может быть отрицательным");
-        }
-
-        user.setMonthlyBudget(budget);
-        userRepository.update(user);
     }
 
     /**

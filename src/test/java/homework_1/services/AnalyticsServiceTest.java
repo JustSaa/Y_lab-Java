@@ -4,6 +4,7 @@ import homework_1.domain.Category;
 import homework_1.domain.Transaction;
 import homework_1.domain.TransactionType;
 import homework_1.repositories.TransactionRepository;
+import homework_1.services.impl.AnalyticsServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -22,7 +23,7 @@ class AnalyticsServiceTest {
     @BeforeEach
     void setUp() {
         transactionRepository = Mockito.mock(TransactionRepository.class);
-        analyticsService = new AnalyticsServiceImplementation(transactionRepository);
+        analyticsService = new AnalyticsServiceImpl(transactionRepository);
     }
 
     @Test

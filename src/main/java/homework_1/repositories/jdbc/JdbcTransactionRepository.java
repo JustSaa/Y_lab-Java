@@ -10,14 +10,30 @@ import java.sql.Date;
 import java.time.LocalDate;
 import java.util.*;
 
+
+/**
+ * Реализация {@link TransactionRepository} для работы с финансовыми транзакциями
+ * с использованием JDBC и базы данных PostgreSQL.
+ */
 public class JdbcTransactionRepository implements TransactionRepository {
 
     private final Connection connection;
 
+    /**
+     * Конструктор репозитория транзакций.
+     *
+     * @param connection объект {@link Connection} для работы с базой данных.
+     */
     public JdbcTransactionRepository(Connection connection) {
         this.connection = connection;
     }
 
+    /**
+     * Сохраняет новую транзакцию в базе данных.
+     *
+     * @param transaction объект {@link Transaction}, содержащий данные о транзакции.
+     * @throws RuntimeException если произошла ошибка при сохранении в БД.
+     */
     @Override
     public void save(Transaction transaction) {
         String sql = """
@@ -39,6 +55,14 @@ public class JdbcTransactionRepository implements TransactionRepository {
         }
     }
 
+    /**
+     * Ищет транзакцию по идентификатору и email пользователя.
+     *
+     * @param userEmail    email пользователя.
+     * @param transactionId уникальный идентификатор транзакции.
+     * @return {@link Optional} с объектом {@link Transaction}, если транзакция найдена, иначе пустой {@link Optional}.
+     * @throws RuntimeException если произошла ошибка при выполнении запроса.
+     */
     @Override
     public Optional<Transaction> findById(String userEmail, long transactionId) {
         String sql = """
@@ -59,6 +83,13 @@ public class JdbcTransactionRepository implements TransactionRepository {
         }
     }
 
+    /**
+     * Возвращает список всех транзакций пользователя.
+     *
+     * @param userEmail email пользователя.
+     * @return список транзакций.
+     * @throws RuntimeException если произошла ошибка при выполнении запроса.
+     */
     @Override
     public List<Transaction> findByUserEmail(String userEmail) {
         String sql = "SELECT * FROM finance.transactions WHERE user_email = ?";
@@ -76,6 +107,12 @@ public class JdbcTransactionRepository implements TransactionRepository {
         }
     }
 
+    /**
+     * Обновляет данные транзакции.
+     *
+     * @param transaction объект {@link Transaction} с обновленными значениями.
+     * @throws RuntimeException если произошла ошибка при обновлении в БД.
+     */
     @Override
     public void update(Transaction transaction) {
         String sql = """
@@ -97,6 +134,13 @@ public class JdbcTransactionRepository implements TransactionRepository {
         }
     }
 
+    /**
+     * Удаляет транзакцию по идентификатору и email пользователя.
+     *
+     * @param userEmail    email пользователя.
+     * @param transactionId уникальный идентификатор транзакции.
+     * @throws RuntimeException если произошла ошибка при удалении из БД.
+     */
     @Override
     public void delete(String userEmail, long transactionId) {
         String sql = "DELETE FROM finance.transactions WHERE user_email = ? AND id = ?";
@@ -109,6 +153,14 @@ public class JdbcTransactionRepository implements TransactionRepository {
         }
     }
 
+    /**
+     * Возвращает список транзакций пользователя за указанную дату.
+     *
+     * @param email email пользователя.
+     * @param date  дата транзакции.
+     * @return список транзакций.
+     * @throws RuntimeException если произошла ошибка при выполнении запроса.
+     */
     @Override
     public List<Transaction> findByUserEmailAndDate(String email, LocalDate date) {
         String sql = """
@@ -129,6 +181,14 @@ public class JdbcTransactionRepository implements TransactionRepository {
         }
     }
 
+    /**
+     * Возвращает список транзакций пользователя по указанной категории.
+     *
+     * @param email   email пользователя.
+     * @param category категория транзакции.
+     * @return список транзакций.
+     * @throws RuntimeException если произошла ошибка при выполнении запроса.
+     */
     @Override
     public List<Transaction> findByUserEmailAndCategory(String email, Category category) {
         String sql = """
@@ -150,6 +210,14 @@ public class JdbcTransactionRepository implements TransactionRepository {
         }
     }
 
+    /**
+     * Возвращает список транзакций пользователя по указанному типу (доход или расход).
+     *
+     * @param email email пользователя.
+     * @param type  тип транзакции.
+     * @return список транзакций.
+     * @throws RuntimeException если произошла ошибка при выполнении запроса.
+     */
     @Override
     public List<Transaction> findByUserEmailAndType(String email, TransactionType type) {
         String sql = """

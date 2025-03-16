@@ -6,14 +6,29 @@ import homework_1.repositories.UserRepository;
 import java.sql.*;
 import java.util.*;
 
+/**
+ * Реализация {@link UserRepository} для работы с пользователями
+ * с использованием JDBC и базы данных PostgreSQL.
+ */
 public class JdbcUserRepository implements UserRepository {
 
     private final Connection connection;
 
+    /**
+     * Конструктор репозитория пользователей.
+     *
+     * @param connection объект {@link Connection} для работы с базой данных.
+     */
     public JdbcUserRepository(Connection connection) {
         this.connection = connection;
     }
 
+    /**
+     * Сохраняет нового пользователя в базе данных.
+     *
+     * @param user объект {@link User}, содержащий данные пользователя.
+     * @throws RuntimeException если произошла ошибка при сохранении в БД.
+     */
     @Override
     public void save(User user) {
         String sql = """
@@ -34,6 +49,13 @@ public class JdbcUserRepository implements UserRepository {
         }
     }
 
+    /**
+     * Ищет пользователя по email.
+     *
+     * @param email email пользователя.
+     * @return {@link Optional} с объектом {@link User}, если пользователь найден, иначе пустой {@link Optional}.
+     * @throws RuntimeException если произошла ошибка при выполнении запроса.
+     */
     @Override
     public Optional<User> findByEmail(String email) {
         String sql = "SELECT * FROM finance.users WHERE email = ?";
@@ -41,15 +63,7 @@ public class JdbcUserRepository implements UserRepository {
             stmt.setString(1, email);
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
-                User user = new User(
-                        rs.getLong("id"),
-                        rs.getString("name"),
-                        rs.getString("email"),
-                        rs.getString("password"),
-                        rs.getBoolean("is_admin"),
-                        rs.getBoolean("is_blocked")
-                );
-                return Optional.of(user);
+                return Optional.of(mapUser(rs));
             }
             return Optional.empty();
         } catch (SQLException e) {
@@ -57,6 +71,12 @@ public class JdbcUserRepository implements UserRepository {
         }
     }
 
+    /**
+     * Возвращает список всех пользователей.
+     *
+     * @return список пользователей.
+     * @throws RuntimeException если произошла ошибка при выполнении запроса.
+     */
     @Override
     public List<User> findAll() {
         String sql = "SELECT * FROM finance.users";
@@ -65,15 +85,7 @@ public class JdbcUserRepository implements UserRepository {
 
             List<User> users = new ArrayList<>();
             while (rs.next()) {
-                User user = new User(
-                        rs.getLong("id"),
-                        rs.getString("name"),
-                        rs.getString("email"),
-                        rs.getString("password"),
-                        rs.getBoolean("is_admin"),
-                        rs.getBoolean("is_blocked")
-                );
-                users.add(user);
+                users.add(mapUser(rs));
             }
             return users;
         } catch (SQLException e) {
@@ -81,6 +93,12 @@ public class JdbcUserRepository implements UserRepository {
         }
     }
 
+    /**
+     * Удаляет пользователя по email.
+     *
+     * @param email email пользователя.
+     * @throws RuntimeException если произошла ошибка при удалении из БД.
+     */
     @Override
     public void delete(String email) {
         String sql = "DELETE FROM finance.users WHERE email = ?";
@@ -92,6 +110,12 @@ public class JdbcUserRepository implements UserRepository {
         }
     }
 
+    /**
+     * Обновляет данные пользователя.
+     *
+     * @param user объект {@link User} с обновленными значениями.
+     * @throws RuntimeException если произошла ошибка при обновлении в БД.
+     */
     @Override
     public void update(User user) {
         String sql = """
@@ -116,6 +140,12 @@ public class JdbcUserRepository implements UserRepository {
         }
     }
 
+    /**
+     * Блокирует пользователя по email.
+     *
+     * @param email email пользователя.
+     * @throws RuntimeException если произошла ошибка при обновлении в БД.
+     */
     @Override
     public void blockUser(String email) {
         String sql = "UPDATE finance.users SET is_blocked = TRUE WHERE email = ?";
@@ -125,5 +155,19 @@ public class JdbcUserRepository implements UserRepository {
         } catch (SQLException e) {
             throw new RuntimeException("Ошибка блокировки пользователя", e);
         }
+    }
+
+    /**
+     * Метод для маппинга ResultSet на сущность User.
+     */
+    private User mapUser(ResultSet rs) throws SQLException {
+        return new User(
+                rs.getLong("id"),
+                rs.getString("name"),
+                rs.getString("email"),
+                rs.getString("password"),
+                rs.getBoolean("is_admin"),
+                rs.getBoolean("is_blocked")
+        );
     }
 }

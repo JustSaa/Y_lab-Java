@@ -22,6 +22,10 @@ public class ConnectionManager {
         loadProperties();
     }
 
+    /**
+     * Загружает параметры подключения к базе данных из конфигурационного файла.
+     * В случае ошибки выбрасывает {@link RuntimeException}.
+     */
     private static void loadProperties() {
         try (InputStream input = ConnectionManager.class.getClassLoader()
                 .getResourceAsStream(PROPERTIES_FILE)) {

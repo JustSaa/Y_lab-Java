@@ -5,6 +5,9 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Properties;
 
+/**
+ * Класс для тестового подключением к базе данных PostgreSQL.
+ */
 public class ConnectionTest {
     public static void main(String[] args) {
         String url = "jdbc:postgresql://localhost:5432/finance_db";

@@ -11,6 +11,9 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.util.Properties;
 
+/**
+ * Класс для запуска миграции Liquibase
+ */
 public class LiquibaseMigrationRunner {
 
     /**

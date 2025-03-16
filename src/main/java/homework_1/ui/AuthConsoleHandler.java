@@ -41,7 +41,7 @@ public class AuthConsoleHandler {
         boolean isAdmin = adminResponse.equals("да");
 
         try {
-            currentUser = authService.register(name, email, password);
+            currentUser = authService.register(name, email, password, isAdmin);
             currentUser.setAdmin(isAdmin);
             System.out.println("Вы успешно зарегистрированы: " + currentUser.getEmail());
             System.out.println("Роль: " + (isAdmin ? "Администратор" : "Обычный пользователь"));

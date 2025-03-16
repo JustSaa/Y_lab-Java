@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.15.xsd">
+
+    <changeSet id="create-sequences" author="salavat">
+        <createSequence schemaName="finance" sequenceName="users_seq" startValue="1"/>
+        <createSequence schemaName="finance" sequenceName="transactions_seq" startValue="1"/>
+        <createSequence schemaName="finance" sequenceName="goals_seq" startValue="1"/>
+        <createSequence schemaName="finance" sequenceName="budgets_seq" startValue="1"/>
+    </changeSet>
+
+    <changeSet id="create-users-table" author="salavat">
+        <createTable schemaName="finance" tableName="users">
+            <column name="id" type="bigint" defaultValueComputed="nextval('finance.users_seq')">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="email" type="varchar(255)">
+                <constraints unique="true" nullable="false"/>
+            </column>
+            <column name="password" type="varchar(255)"/>
+            <column name="is_admin" type="boolean" defaultValueBoolean="false"/>
+            <column name="is_blocked" type="boolean" defaultValueBoolean="false"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="create-transactions-table" author="salavat">
+        <createTable schemaName="finance" tableName="transactions">
+            <column name="id" type="bigint" defaultValueComputed="nextval('finance.transactions_seq')">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="user_email" type="varchar(255)"/>
+            <column name="amount" type="decimal(15,2)"/>
+            <column name="type" type="varchar(20)"/>
+            <column name="category" type="varchar(50)"/>
+            <column name="date" type="date"/>
+            <column name="description" type="varchar(255)"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="create-goals-table" author="salavat">
+        <createTable schemaName="finance" tableName="goals">
+            <column name="id" type="bigint" defaultValueComputed="nextval('finance.goals_seq')">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="user_email" type="varchar(255)"/>
+            <column name="name" type="varchar(100)"/>
+            <column name="target_amount" type="decimal(15,2)"/>
+            <column name="current_amount" type="decimal(15,2)" defaultValueNumeric="0"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="create-budgets-table" author="salavat">
+        <createTable schemaName="finance" tableName="budgets">
+            <column name="id" type="bigint" defaultValueComputed="nextval('finance.budgets_seq')">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="user_email" type="varchar(255)"/>
+            <column name="budget_limit" type="decimal(15,2)"/>
+        </createTable>
+    </changeSet>
+
+</databaseChangeLog>

@@ -73,7 +73,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public void deleteTransaction(String userEmail, UUID transactionId) {
+    public void deleteTransaction(String userEmail, long transactionId) {
         transactionRepository.delete(userEmail, transactionId);
     }
 

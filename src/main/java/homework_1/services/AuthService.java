@@ -18,7 +18,7 @@ public interface AuthService {
      * @param password пароль
      * @return созданный пользователь
      */
-    User register(String name, String email, String password);
+    User register(String name, String email, String password, boolean isAdmin);
 
     /**
      * Авторизация пользователя.

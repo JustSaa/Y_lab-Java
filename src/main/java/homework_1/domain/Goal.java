@@ -1,14 +1,12 @@
 package homework_1.domain;
 
-import java.util.UUID;
-
 /**
  * Финансовая цель пользователя.
  */
 public class Goal {
-    private final UUID id;
+    private long id;
     private final String userEmail;
-    private final String name;
+    private String name;
     private final double targetAmount;
     private double currentAmount;
 
@@ -19,16 +17,34 @@ public class Goal {
      * @param name         название цели
      * @param targetAmount сумма, которую нужно накопить
      */
+    public Goal(long id, String userEmail, String name, double targetAmount, double currentAmount) {
+        this.id = id;
+        this.userEmail = userEmail;
+        this.name = name;
+        this.targetAmount = targetAmount;
+        this.currentAmount = currentAmount;
+    }
+
+    /**
+     * Конструктор создания цели.
+     *
+     * @param userEmail    почта пользователя
+     * @param name         название цели
+     * @param targetAmount сумма, которую нужно накопить
+     */
     public Goal(String userEmail, String name, double targetAmount) {
-        this.id = UUID.randomUUID();
         this.userEmail = userEmail;
         this.name = name;
         this.targetAmount = targetAmount;
         this.currentAmount = 0;
     }
 
-    public UUID getId() {
+    public long getId() {
         return id;
+    }
+
+    public void setId(long id) {
+        this.id = id;
     }
 
     public String getUserEmail() {
@@ -39,12 +55,20 @@ public class Goal {
         return name;
     }
 
+    public void setName(String name) {
+        this.name = name;
+    }
+
     public double getTargetAmount() {
         return targetAmount;
     }
 
     public double getCurrentAmount() {
         return currentAmount;
+    }
+
+    public void setCurrentAmount(double currentAmount) {
+        this.currentAmount = currentAmount;
     }
 
     public void addToGoal(double amount) {

@@ -31,14 +31,14 @@ class AuthServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        user = new User("Иван Иванов", "ivan@mail.com", "password123");
+        user = new User("Иван Иванов", "ivan@mail.com", "password123", false);
     }
 
     @Test
     void register_NewUser_Success() {
         when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.empty());
 
-        User createdUser = authServiceImpl.register(user.getName(), user.getEmail(), user.getPassword());
+        User createdUser = authServiceImpl.register(user.getName(), user.getEmail(), user.getPassword(), user.isAdmin());
 
         assertThat(createdUser).isNotNull();
         assertThat(createdUser.getEmail()).isEqualTo(user.getEmail());
@@ -49,7 +49,7 @@ class AuthServiceImplTest {
     void register_ExistingEmail_ThrowsException() {
         when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
 
-        assertThatThrownBy(() -> authServiceImpl.register(user.getName(), user.getEmail(), user.getPassword()))
+        assertThatThrownBy(() -> authServiceImpl.register(user.getName(), user.getEmail(), user.getPassword(), user.isAdmin()))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Пользователь с таким email уже существует");
 
@@ -138,8 +138,7 @@ class AuthServiceImplTest {
 
     @Test
     void blockUser_AsAdmin_ShouldBlockUser() {
-        User admin = new User("Admin", "admin@mail.com", "password");
-        admin.setAdmin(true);
+        User admin = new User("Admin", "admin@mail.com", "password", true);
 
         when(userRepository.findByEmail(admin.getEmail())).thenReturn(Optional.of(admin));
 
@@ -150,8 +149,7 @@ class AuthServiceImplTest {
 
     @Test
     void deleteUser_AsAdmin_ShouldDeleteUser() {
-        User admin = new User("Admin", "admin@mail.com", "password");
-        admin.setAdmin(true);
+        User admin = new User("Admin", "admin@mail.com", "password", true);
 
         when(userRepository.findByEmail(admin.getEmail())).thenReturn(Optional.of(admin));
 

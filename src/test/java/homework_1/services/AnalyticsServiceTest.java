@@ -30,8 +30,8 @@ class AnalyticsServiceTest {
     void testGetTotalIncome() {
         String email = "user@example.com";
         when(transactionRepository.findByUserEmail(email)).thenReturn(List.of(
-                new Transaction(email, 1000, TransactionType.INCOME, Category.SALARY, LocalDate.of(2024, 6, 1), "Зарплата"),
-                new Transaction(email, 500, TransactionType.INCOME, Category.OTHER, LocalDate.of(2024, 8, 15), "Бонус")
+                new Transaction(1, email, 1000, TransactionType.INCOME, Category.SALARY, LocalDate.of(2024, 6, 1), "Зарплата"),
+                new Transaction(2, email, 500, TransactionType.INCOME, Category.OTHER, LocalDate.of(2024, 8, 15), "Бонус")
         ));
 
         double totalIncome = analyticsService.getTotalIncome(email, "2024-01-01", "2024-12-31");
@@ -43,9 +43,9 @@ class AnalyticsServiceTest {
     void testAnalyzeExpensesByCategory() {
         String email = "user@example.com";
         when(transactionRepository.findByUserEmail(email)).thenReturn(List.of(
-                new Transaction(email, 300, TransactionType.EXPENSE, Category.FOOD, LocalDate.now(), "Обед"),
-                new Transaction(email, 200, TransactionType.EXPENSE, Category.TRANSPORT, LocalDate.now(), "Такси"),
-                new Transaction(email, 500, TransactionType.EXPENSE, Category.FOOD, LocalDate.now(), "Ужин")
+                new Transaction(1, email, 300, TransactionType.EXPENSE, Category.FOOD, LocalDate.now(), "Обед"),
+                new Transaction(2, email, 200, TransactionType.EXPENSE, Category.TRANSPORT, LocalDate.now(), "Такси"),
+                new Transaction(3, email, 500, TransactionType.EXPENSE, Category.FOOD, LocalDate.now(), "Ужин")
         ));
 
         String report = analyticsService.analyzeExpensesByCategory(email);

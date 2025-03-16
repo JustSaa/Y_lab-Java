@@ -31,7 +31,7 @@ public interface TransactionService {
     /**
      * Удаление транзакции.
      */
-    void deleteTransaction(String userEmail, UUID transactionId);
+    void deleteTransaction(String userEmail, long transactionId);
 
     /**
      * Подсчет текущего баланса пользователя.

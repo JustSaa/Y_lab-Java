@@ -12,7 +12,7 @@ public class Transaction {
     /**
      * Уникальный идентификатор транзакции.
      */
-    private final UUID id;
+    private final long id;
 
     /**
      * Почта пользователя, которому принадлежит транзакция.
@@ -54,9 +54,9 @@ public class Transaction {
      * @param date        дата транзакции
      * @param description описание транзакции
      */
-    public Transaction(String userEmail, double amount, TransactionType type,
+    public Transaction(long id, String userEmail, double amount, TransactionType type,
                        Category category, LocalDate date, String description) {
-        this.id = UUID.randomUUID();
+        this.id = id;
         this.userEmail = userEmail;
         this.amount = amount;
         this.type = type;
@@ -85,7 +85,7 @@ public class Transaction {
         return Objects.hash(id, userEmail, amount, type, category, date, description);
     }
 
-    public UUID getId() {
+    public long getId() {
         return id;
     }
 

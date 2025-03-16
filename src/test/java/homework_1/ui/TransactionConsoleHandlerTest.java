@@ -24,7 +24,7 @@ class TransactionConsoleHandlerTest {
         transactionService = Mockito.mock(TransactionService.class);
         scanner = new Scanner("");
         consoleHandler = new TransactionConsoleHandler(transactionService, scanner);
-        user = new User("Тест", "test@mail.com", "password");
+        user = new User("Тест", "test@mail.com", "password", false);
     }
 
     @Test
@@ -70,8 +70,8 @@ class TransactionConsoleHandlerTest {
     @Test
     void showTransactions_ShouldPrintTransactions() {
         List<Transaction> transactions = List.of(
-                new Transaction(user.getEmail(), 1000, TransactionType.INCOME, Category.SALARY, LocalDate.now(), "Зарплата"),
-                new Transaction(user.getEmail(), 500, TransactionType.EXPENSE, Category.FOOD, LocalDate.now(), "Обед")
+                new Transaction(1, user.getEmail(), 1000, TransactionType.INCOME, Category.SALARY, LocalDate.now(), "Зарплата"),
+                new Transaction(2, user.getEmail(), 500, TransactionType.EXPENSE, Category.FOOD, LocalDate.now(), "Обед")
         );
 
         when(transactionService.getTransactions(user.getEmail())).thenReturn(transactions);

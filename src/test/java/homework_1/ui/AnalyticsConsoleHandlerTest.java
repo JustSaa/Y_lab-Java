@@ -20,7 +20,7 @@ class AnalyticsConsoleHandlerTest {
     void setUp() {
         analyticsService = mock(AnalyticsService.class);
         analyticsConsoleHandler = new AnalyticsConsoleHandler(analyticsService, new Scanner(System.in));
-        currentUser = new User("User1", "user1@mail.com", "password");
+        currentUser = new User("User1", "user1@mail.com", "password", false);
     }
 
     @Test

@@ -42,34 +42,36 @@ class NotificationServiceTest {
 
     @Test
     void sendNotification_WhenBudgetExceeded_ShouldBeTriggered() {
-        User user = new User("Тест", testEmail, "password");
-        Budget budget = new Budget(testEmail, 500);
+        String testEmail = "user@example.com";
 
-        when(budgetService.getUserBudget(testEmail)).thenReturn(Optional.of(budget));
+        when(budgetService.getUserBudget(testEmail)).thenReturn(Optional.of(new Budget(testEmail, 500)));
+
         when(transactionRepository.findByUserEmailAndType(testEmail, TransactionType.EXPENSE))
-                .thenReturn(List.of(new Transaction(testEmail, 600, TransactionType.EXPENSE, Category.FOOD, LocalDate.now(), "Еда")));
+                .thenReturn(List.of(
+                        new Transaction(1L, testEmail, 600, TransactionType.EXPENSE, Category.FOOD, LocalDate.now(), "Еда")
+                ));
 
-        Transaction transaction = new Transaction(testEmail, 200, TransactionType.EXPENSE, Category.TRANSPORT, LocalDate.now(), "Такси");
+        Transaction transaction = new Transaction(2, testEmail, 200, TransactionType.EXPENSE, Category.TRANSPORT, LocalDate.now(), "Такси");
 
-        assertThatThrownBy(() -> transactionServiceImpl.createTransaction(transaction))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("Ваши расходы превышают установленный бюджет!");
+        transactionServiceImpl.createTransaction(transaction);
 
         verify(notificationService, times(1))
-                .sendNotification(eq(testEmail), contains("Ваши расходы превысили установленный бюджет!"));
+                .sendNotification(eq(testEmail), contains("превысили установленный бюджет"));
+
+        verify(transactionRepository, never()).save(transaction);
     }
 
     @Test
     void sendNotification_WhenBudgetNotExceeded_ShouldNotBeTriggered() {
-        User user = new User("Тест", testEmail, "password");
+        User user = new User("Тест", testEmail, "password", false);
         Budget budget = new Budget(testEmail, 500);
 
         when(budgetService.getUserBudget(testEmail)).thenReturn(Optional.of(budget));
 
         when(transactionRepository.findByUserEmail(testEmail))
-                .thenReturn(List.of(new Transaction(testEmail, 600, TransactionType.EXPENSE, Category.FOOD, LocalDate.now(), "Еда")));
+                .thenReturn(List.of(new Transaction(1, testEmail, 600, TransactionType.EXPENSE, Category.FOOD, LocalDate.now(), "Еда")));
 
-        Transaction transaction = new Transaction(testEmail, 200, TransactionType.EXPENSE, Category.TRANSPORT, LocalDate.now(), "Такси");
+        Transaction transaction = new Transaction(2, testEmail, 200, TransactionType.EXPENSE, Category.TRANSPORT, LocalDate.now(), "Такси");
 
         transactionServiceImpl.createTransaction(transaction);
 

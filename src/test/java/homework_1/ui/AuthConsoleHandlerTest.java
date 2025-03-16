@@ -30,14 +30,14 @@ class AuthConsoleHandlerTest {
 
         authConsoleHandler = new AuthConsoleHandler(authService, new Scanner(System.in));
 
-        User mockUser = new User("Иван Иванов", "ivan@mail.com", "password123");
-        when(authService.register("Иван Иванов", "ivan@mail.com", "password123")).thenReturn(mockUser);
+        User mockUser = new User("Иван Иванов", "ivan@mail.com", "password123", true);
+        when(authService.register("Иван Иванов", "ivan@mail.com", "password123", true)).thenReturn(mockUser);
 
         User registeredUser = authConsoleHandler.register();
 
         assertThat(registeredUser).isNotNull();
         assertThat(registeredUser.getEmail()).isEqualTo("ivan@mail.com");
-        verify(authService, times(1)).register("Иван Иванов", "ivan@mail.com", "password123");
+        verify(authService, times(1)).register("Иван Иванов", "ivan@mail.com", "password123", true);
     }
 
     @Test
@@ -50,7 +50,7 @@ class AuthConsoleHandlerTest {
         User registeredUser = authConsoleHandler.register();
 
         assertThat(registeredUser).isNull();
-        verify(authService, never()).register(anyString(), anyString(), anyString());
+        verify(authService, never()).register(anyString(), anyString(), anyString(), anyBoolean());
     }
 
     @Test
@@ -60,7 +60,7 @@ class AuthConsoleHandlerTest {
 
         authConsoleHandler = new AuthConsoleHandler(authService, new Scanner(System.in));
 
-        User mockUser = new User("Иван Иванов", "ivan@mail.com", "password123");
+        User mockUser = new User("Иван Иванов", "ivan@mail.com", "password123", false);
         when(authService.login("ivan@mail.com", "password123")).thenReturn(mockUser);
 
         User loggedInUser = authConsoleHandler.login();
@@ -87,7 +87,7 @@ class AuthConsoleHandlerTest {
 
     @Test
     void editProfile_ShouldNotUpdate_WhenEmailIsInvalid() {
-        User mockUser = new User("Иван Иванов", "ivan@mail.com", "password123");
+        User mockUser = new User("Иван Иванов", "ivan@mail.com", "password123", false);
         authConsoleHandler = new AuthConsoleHandler(authService, new Scanner(System.in));
 
         String input = "Новый Иван\ninvalid-email\nnewpassword\n";
@@ -101,7 +101,7 @@ class AuthConsoleHandlerTest {
 
     @Test
     void deleteAccount_ShouldNotDelete_WhenNotConfirmed() {
-        User mockUser = new User("Иван Иванов", "ivan@mail.com", "password123");
+        User mockUser = new User("Иван Иванов", "ivan@mail.com", "password123", false);
         authConsoleHandler = new AuthConsoleHandler(authService, new Scanner(System.in));
 
         String input = "нет\n";

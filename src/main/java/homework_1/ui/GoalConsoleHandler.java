@@ -3,8 +3,8 @@ package homework_1.ui;
 import homework_1.domain.Goal;
 import homework_1.domain.User;
 import homework_1.services.GoalService;
-import homework_1.services.impl.GoalServiceImpl;
 
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Scanner;
 import java.util.UUID;
@@ -38,7 +38,7 @@ public class GoalConsoleHandler {
     /**
      * Отображает список целей пользователя.
      */
-    public void showGoals(User user) {
+    public void showGoals(User user) throws SQLException {
         List<Goal> goals = goalService.getUserGoals(user.getEmail());
         goals.forEach(goal -> System.out.println(goal.getName() + " - " +
                 goal.getCurrentAmount() + "/" + goal.getTargetAmount()));
@@ -48,13 +48,13 @@ public class GoalConsoleHandler {
      * Пополняет цель на указанную сумму.
      */
     public void addToGoal() {
-        System.out.println("Введите ID цели:");
-        UUID goalId = UUID.fromString(scanner.nextLine());
+        System.out.println("Введите название цели:");
+        String goalName = scanner.nextLine();
 
         System.out.println("Введите сумму для пополнения:");
         double amount = Double.parseDouble(scanner.nextLine());
 
-        goalService.addToGoal(goalId, amount);
+        goalService.addToGoal(goalName, amount);
         System.out.println("Цель пополнена.");
     }
 
@@ -63,7 +63,7 @@ public class GoalConsoleHandler {
      */
     public void deleteGoal() {
         System.out.println("Введите ID цели для удаления:");
-        UUID goalId = UUID.fromString(scanner.nextLine());
+        long goalId = Long.parseLong(scanner.nextLine());
 
         goalService.deleteGoal(goalId);
         System.out.println("Цель удалена.");

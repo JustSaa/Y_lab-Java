@@ -13,7 +13,7 @@ class InMemoryUserRepositoryTest {
 
     @Test
     void saveAndFindByEmail_Success() {
-        User user = new User("Иван Иванов", "ivan@mail.com", "pass");
+        User user = new User("Иван Иванов", "ivan@mail.com", "pass", false);
         repository.save(user);
 
         Optional<User> foundUser = repository.findByEmail(user.getEmail());
@@ -23,7 +23,7 @@ class InMemoryUserRepositoryTest {
 
     @Test
     void findById_UserExists_ReturnsUser() {
-        User user = new User("Иван", "ivan@mail.com", "pass");
+        User user = new User("Иван", "ivan@mail.com", "pass", false);
         repository.save(user);
 
         Optional<User> found = repository.findByEmail(user.getEmail());
@@ -33,7 +33,7 @@ class InMemoryUserRepositoryTest {
 
     @Test
     void delete_User_RemovedSuccessfully() {
-        User user = new User("Иван", "ivan@mail.com", "pass");
+        User user = new User("Иван", "ivan@mail.com", "pass", false);
         repository.save(user);
 
         repository.delete(user.getEmail());

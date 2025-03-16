@@ -6,6 +6,7 @@ import java.util.Objects;
  * Сущность пользователя.
  */
 public class User {
+    long id;
     /**
      * Имя пользователя
      */
@@ -36,11 +37,22 @@ public class User {
      * @param name     имя пользователя
      * @param email    email
      * @param password пароль
+     * @param isAdmin является ли пользователь Админом
      */
-    public User(String name, String email, String password) {
+    public User(String name, String email, String password, boolean isAdmin) {
         this.name = name;
         this.email = email;
         this.password = password;
+        this.isAdmin = isAdmin;
+    }
+
+    public User(long id, String name, String email, String password, boolean isAdmin, boolean isBlocked) {
+        this.id = id;
+        this.name = name;
+        this.email = email;
+        this.password = password;
+        this.isAdmin = isAdmin;
+        this.isBlocked = isBlocked;
     }
 
     public String getName() {

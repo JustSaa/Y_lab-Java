@@ -50,10 +50,10 @@ public class InMemoryTransactionRepository implements TransactionRepository {
      * @return Optional транзакции
      */
     @Override
-    public Optional<Transaction> findById(String userEmail, UUID transactionId) {
+    public Optional<Transaction> findById(String userEmail, long transactionId) {
         return transactionsMap.getOrDefault(userEmail, List.of())
                 .stream()
-                .filter(transaction -> transaction.getId().equals(transactionId))
+                .filter(transaction -> transaction.getId() == (transactionId))
                 .findFirst();
     }
 
@@ -71,7 +71,7 @@ public class InMemoryTransactionRepository implements TransactionRepository {
         }
 
         transactions.replaceAll(existingTransaction ->
-                existingTransaction.getId().equals(transaction.getId())
+                existingTransaction.getId() == (transaction.getId())
                         ? transaction
                         : existingTransaction
         );
@@ -84,9 +84,9 @@ public class InMemoryTransactionRepository implements TransactionRepository {
      * @param transactionId ID транзакции
      */
     @Override
-    public void delete(String userEmail, UUID transactionId) {
+    public void delete(String userEmail, long transactionId) {
         transactionsMap.getOrDefault(userEmail, new ArrayList<>())
-                .removeIf(transaction -> transaction.getId().equals(transactionId));
+                .removeIf(transaction -> transaction.getId() == transactionId);
     }
 
     /**

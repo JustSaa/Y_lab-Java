@@ -25,16 +25,17 @@ public class AuthServiceImpl implements AuthService {
      * @param name     имя
      * @param email    электронная почта
      * @param password пароль
+     * @param isAdmin является ли пользователь Админом
      * @return созданный пользователь
      */
     @Override
-    public User register(String name, String email, String password) {
+    public User register(String name, String email, String password, boolean isAdmin) {
         Optional<User> existingUser = userRepository.findByEmail(email);
         if (existingUser.isPresent()) {
             throw new IllegalArgumentException("Пользователь с таким email уже существует");
         }
 
-        User newUser = new User(name, email, password);
+        User newUser = new User(name, email, password, isAdmin);
         userRepository.save(newUser);
 
         return newUser;

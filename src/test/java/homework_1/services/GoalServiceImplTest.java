@@ -10,6 +10,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -50,7 +51,7 @@ class GoalServiceImplTest {
     }
 
     @Test
-    void getUserGoals_ShouldReturnGoals() {
+    void getUserGoals_ShouldReturnGoals() throws SQLException {
         when(goalRepository.findByUserEmail(userEmail)).thenReturn(List.of(goal));
 
         List<Goal> goals = goalServiceImpl.getUserGoals(userEmail);
@@ -60,10 +61,10 @@ class GoalServiceImplTest {
 
     @Test
     void addToGoal_ShouldIncreaseCurrentAmount() {
-        UUID goalId = goal.getId();
-        when(goalRepository.findById(goalId)).thenReturn(Optional.of(goal));
+        String goalName = goal.getName();
+        when(goalRepository.findByName(goalName)).thenReturn(Optional.of(goal));
 
-        goalServiceImpl.addToGoal(goalId, 5000);
+        goalServiceImpl.addToGoal(goalName, 5000);
 
         assertThat(goal.getCurrentAmount()).isEqualTo(5000);
         verify(goalRepository, times(1)).update(goal);
@@ -71,17 +72,17 @@ class GoalServiceImplTest {
 
     @Test
     void addToGoal_InvalidAmount_ShouldThrowException() {
-        UUID goalId = goal.getId();
-        when(goalRepository.findById(goalId)).thenReturn(Optional.of(goal));
+        String goalName = goal.getName();
+        when(goalRepository.findByName(goalName)).thenReturn(Optional.of(goal));
 
-        assertThatThrownBy(() -> goalServiceImpl.addToGoal(goalId, -100))
+        assertThatThrownBy(() -> goalServiceImpl.addToGoal(goalName, -100))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Сумма должна быть положительной.");
     }
 
     @Test
     void deleteGoal_ShouldCallRepositoryDelete() {
-        UUID goalId = goal.getId();
+        long goalId = goal.getId();
         goalServiceImpl.deleteGoal(goalId);
 
         verify(goalRepository, times(1)).delete(goalId);

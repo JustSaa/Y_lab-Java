@@ -24,8 +24,8 @@ class AdminConsoleHandlerTest {
     @Test
     void showAllUsers_ShouldDisplayUsers() {
         List<User> users = List.of(
-                new User("Admin", "admin@mail.com", "password123"),
-                new User("User1", "user1@mail.com", "password123")
+                new User("Admin", "admin@mail.com", "password123", false),
+                new User("User1", "user1@mail.com", "password123", false)
         );
 
         when(authService.getAllUsers()).thenReturn(users);
@@ -37,8 +37,7 @@ class AdminConsoleHandlerTest {
 
     @Test
     void blockUser_ShouldBlockUser_WhenAdmin() {
-        User admin = new User("Admin", "admin@mail.com", "password");
-        admin.setAdmin(true);
+        User admin = new User("Admin", "admin@mail.com", "password", true);
 
         String userEmail = "user1@mail.com";
         String input = userEmail + "\n";
@@ -52,7 +51,7 @@ class AdminConsoleHandlerTest {
 
     @Test
     void blockUser_ShouldNotBlockUser_WhenNotAdmin() {
-        User user = new User("User1", "user1@mail.com", "password");
+        User user = new User("User1", "user1@mail.com", "password", false);
 
         adminConsoleHandler.blockUser(user);
 
@@ -61,8 +60,7 @@ class AdminConsoleHandlerTest {
 
     @Test
     void deleteUser_ShouldDeleteUser_WhenAdmin() {
-        User admin = new User("Admin", "admin@mail.com", "password");
-        admin.setAdmin(true);
+        User admin = new User("Admin", "admin@mail.com", "password", true);
 
         String userEmail = "user2@mail.com";
         String input = userEmail + "\n";
@@ -76,7 +74,7 @@ class AdminConsoleHandlerTest {
 
     @Test
     void deleteUser_ShouldNotDeleteUser_WhenNotAdmin() {
-        User user = new User("User1", "user1@mail.com", "password");
+        User user = new User("User1", "user1@mail.com", "password", false);
 
         adminConsoleHandler.deleteUser(user);
 

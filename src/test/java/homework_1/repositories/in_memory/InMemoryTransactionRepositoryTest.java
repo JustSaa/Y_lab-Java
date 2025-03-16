@@ -27,9 +27,9 @@ class InMemoryTransactionRepositoryTest {
         repository = new InMemoryTransactionRepository();
         userEmail = "test@mail.com";
 
-        transaction1 = new Transaction(userEmail, 1000, TransactionType.INCOME, Category.SALARY, LocalDate.of(2024, 3, 10), "Зарплата");
-        transaction2 = new Transaction(userEmail, 200, TransactionType.EXPENSE, Category.FOOD, LocalDate.of(2024, 3, 15), "Покупка еды");
-        transaction3 = new Transaction(userEmail, 300, TransactionType.EXPENSE, Category.TRANSPORT, LocalDate.of(2024, 3, 15), "Проезд");
+        transaction1 = new Transaction(1, userEmail, 1000, TransactionType.INCOME, Category.SALARY, LocalDate.of(2024, 3, 10), "Зарплата");
+        transaction2 = new Transaction(2, userEmail, 200, TransactionType.EXPENSE, Category.FOOD, LocalDate.of(2024, 3, 15), "Покупка еды");
+        transaction3 = new Transaction(3, userEmail, 300, TransactionType.EXPENSE, Category.TRANSPORT, LocalDate.of(2024, 3, 15), "Проезд");
 
         repository.save(transaction1);
         repository.save(transaction2);
@@ -46,7 +46,7 @@ class InMemoryTransactionRepositoryTest {
 
     @Test
     void findById_ShouldReturnEmptyForNonexistentTransaction() {
-        UUID randomId = UUID.randomUUID();
+        long randomId = 6;
 
         Optional<Transaction> foundTransaction = repository.findById(userEmail, randomId);
 
@@ -93,7 +93,7 @@ class InMemoryTransactionRepositoryTest {
 
     @Test
     void update_ShouldNotChangeIfTransactionNotExists() {
-        Transaction nonExistentTransaction = new Transaction(userEmail, 500, TransactionType.EXPENSE, Category.OTHER, LocalDate.now(), "Новая транзакция");
+        Transaction nonExistentTransaction = new Transaction(7, userEmail, 500, TransactionType.EXPENSE, Category.OTHER, LocalDate.now(), "Новая транзакция");
 
         repository.update(nonExistentTransaction);
 

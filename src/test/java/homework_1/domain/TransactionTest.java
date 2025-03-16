@@ -12,7 +12,7 @@ class TransactionTest {
     void gettersAndSetters_WorkCorrectly() {
         String userEmail = "example@mail.ru";
         Transaction transaction = new Transaction(
-                userEmail, 500, TransactionType.EXPENSE, Category.FOOD,
+                1, userEmail, 500, TransactionType.EXPENSE, Category.FOOD,
                 LocalDate.of(2024, 3, 6), "Покупка продуктов");
 
         transaction.setAmount(600);
@@ -34,7 +34,7 @@ class TransactionTest {
         String userEmail = "example@mail.ru";
 
         Transaction transaction1 = new Transaction(
-                userEmail, 1000, TransactionType.INCOME, Category.SALARY,
+                1, userEmail, 1000, TransactionType.INCOME, Category.SALARY,
                 LocalDate.now(), "Зарплата");
 
         assertThat(transaction1).isEqualTo(transaction1);

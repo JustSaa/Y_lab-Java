@@ -4,8 +4,8 @@ import homework_1.domain.Goal;
 import homework_1.repositories.GoalRepository;
 import homework_1.services.GoalService;
 
+import java.sql.SQLException;
 import java.util.List;
-import java.util.UUID;
 
 /**
  * Сервис управления финансовыми целями.
@@ -39,18 +39,18 @@ public class GoalServiceImpl implements GoalService {
      * @param userEmail почта пользователя
      * @return список целей
      */
-    public List<Goal> getUserGoals(String userEmail) {
+    public List<Goal> getUserGoals(String userEmail) throws SQLException {
         return goalRepository.findByUserEmail(userEmail);
     }
 
     /**
      * Пополняет сумму накопления цели.
      *
-     * @param goalId идентификатор цели
-     * @param amount сумма для пополнения
+     * @param goalName название цели
+     * @param amount   сумма для пополнения
      */
-    public void addToGoal(UUID goalId, double amount) {
-        Goal goal = goalRepository.findById(goalId)
+    public void addToGoal(String goalName, double amount) {
+        Goal goal = goalRepository.findByName(goalName)
                 .orElseThrow(() -> new IllegalArgumentException("Цель не найдена."));
 
         if (amount <= 0) {
@@ -66,7 +66,12 @@ public class GoalServiceImpl implements GoalService {
      *
      * @param goalId идентификатор цели
      */
-    public void deleteGoal(UUID goalId) {
+    public void deleteGoal(long goalId) {
         goalRepository.delete(goalId);
+    }
+
+    @Override
+    public void updateGoal(long goalId) {
+
     }
 }

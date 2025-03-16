@@ -45,7 +45,7 @@ public class TransactionConsoleHandler {
             System.out.println("Введите описание:");
             String description = scanner.nextLine();
 
-            Transaction transaction = new Transaction(
+            Transaction transaction = new Transaction(1,
                     user.getEmail(), amount, type, category, LocalDate.now(), description
             );
 

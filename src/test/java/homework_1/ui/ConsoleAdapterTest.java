@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.sql.SQLException;
 
 import static org.mockito.Mockito.*;
 
@@ -27,14 +28,14 @@ class ConsoleAdapterTest {
     }
 
     @Test
-    void testAuthMenu_Exit() {
+    void testAuthMenu_Exit() throws SQLException {
         provideInput("0\n");
 
         consoleAdapter.start();
     }
 
     @Test
-    void testMainMenu_ShowBalance() {
+    void testMainMenu_ShowBalance() throws SQLException {
         provideInput("2\ntest@example.com\npassword\n3\n0\n");
 
         consoleAdapter.start();

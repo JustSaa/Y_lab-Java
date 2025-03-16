@@ -41,13 +41,13 @@ class TransactionServiceImplTest {
     @BeforeEach
     void setUp() {
         userEmail = "example@mail.ru";
-        user = new User("Иван Иванов", userEmail, "password123");
+        user = new User("Иван Иванов", userEmail, "password123", false);
 
-        transactionIncome = new Transaction(
+        transactionIncome = new Transaction(1,
                 userEmail, 1000.0, TransactionType.INCOME,
                 Category.SALARY, LocalDate.now(), "Зарплата");
 
-        transactionExpense = new Transaction(
+        transactionExpense = new Transaction(2,
                 userEmail, 200.0, TransactionType.EXPENSE,
                 Category.FOOD, LocalDate.now(), "Покупка продуктов");
     }
@@ -84,7 +84,7 @@ class TransactionServiceImplTest {
 
     @Test
     void deleteTransaction_ShouldCallRepositoryDelete() {
-        UUID transactionId = transactionExpense.getId();
+        long transactionId = transactionExpense.getId();
         transactionServiceImpl.deleteTransaction(userEmail, transactionId);
         verify(transactionRepository).delete(userEmail, transactionId);
     }

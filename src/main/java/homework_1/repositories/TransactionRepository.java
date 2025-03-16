@@ -42,7 +42,7 @@ public interface TransactionRepository {
      * @param userEmail     почта пользователя
      * @param transactionId идентификатор транзакции
      */
-    void delete(String userEmail, UUID transactionId);
+    void delete(String userEmail, long transactionId);
 
     /**
      * Поиск транзакции по ID.
@@ -51,7 +51,7 @@ public interface TransactionRepository {
      * @param transactionId идентификатор транзакции
      * @return Optional с транзакцией или пустой, если не найдено
      */
-    Optional<Transaction> findById(String userEmail, UUID transactionId);
+    Optional<Transaction> findById(String userEmail, long transactionId);
 
     /**
      * Возвращает список транзакций пользователя за указанную дату.

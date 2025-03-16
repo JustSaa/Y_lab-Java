@@ -2,8 +2,8 @@ package homework_1.services;
 
 import homework_1.domain.Goal;
 
+import java.sql.SQLException;
 import java.util.List;
-import java.util.UUID;
 
 /**
  * Сервис управления финансовыми целями.
@@ -25,20 +25,27 @@ public interface GoalService {
      * @param userEmail почта пользователя
      * @return список целей
      */
-    List<Goal> getUserGoals(String userEmail);
+    List<Goal> getUserGoals(String userEmail) throws SQLException;
 
     /**
      * Пополняет сумму накопления цели.
      *
-     * @param goalId идентификатор цели
+     * @param nameGoal название цели
      * @param amount сумма для пополнения
      */
-    void addToGoal(UUID goalId, double amount);
+    void addToGoal(String nameGoal, double amount);
 
     /**
      * Удаляет цель.
      *
      * @param goalId идентификатор цели
      */
-    void deleteGoal(UUID goalId);
+    void deleteGoal(long goalId);
+
+    /**
+     * Обновляет цель.
+     *
+     * @param goalId идентификатор цели
+     */
+    void updateGoal(long goalId);
 }

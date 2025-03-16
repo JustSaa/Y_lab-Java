@@ -7,6 +7,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Scanner;
 import java.util.UUID;
@@ -25,7 +26,7 @@ class GoalConsoleHandlerTest {
         goalServiceImpl = mock(GoalServiceImpl.class);
         scanner = mock(Scanner.class);
         goalConsoleHandler = new GoalConsoleHandler(goalServiceImpl, scanner);
-        testUser = new User("Иван Иванов", "test@example.com", "password123");
+        testUser = new User("Иван Иванов", "test@example.com", "password123", false);
     }
 
     @Test
@@ -46,7 +47,7 @@ class GoalConsoleHandlerTest {
     }
 
     @Test
-    void showGoals_ShouldDisplayGoals_WhenGoalsExist() {
+    void showGoals_ShouldDisplayGoals_WhenGoalsExist() throws SQLException {
         List<Goal> goals = List.of(
                 new Goal("test@example.com", "Машина", 100000),
                 new Goal("test@example.com", "Отпуск", 50000)
@@ -60,18 +61,18 @@ class GoalConsoleHandlerTest {
 
     @Test
     void addToGoal_ShouldAddToGoal_WhenInputIsValid() {
-        UUID goalId = UUID.randomUUID();
-        when(scanner.nextLine()).thenReturn(goalId.toString(), "20000");
+        String goalName = "Car";
+        when(scanner.nextLine()).thenReturn(goalName, "20000");
 
         goalConsoleHandler.addToGoal();
 
-        verify(goalServiceImpl, times(1)).addToGoal(goalId, 20000);
+        verify(goalServiceImpl, times(1)).addToGoal(goalName, 20000);
     }
 
     @Test
     void deleteGoal_ShouldDeleteGoal_WhenInputIsValid() {
-        UUID goalId = UUID.randomUUID();
-        when(scanner.nextLine()).thenReturn(goalId.toString());
+        long goalId = 1L;
+        when(scanner.nextLine()).thenReturn(String.valueOf(goalId));
 
         goalConsoleHandler.deleteGoal();
 

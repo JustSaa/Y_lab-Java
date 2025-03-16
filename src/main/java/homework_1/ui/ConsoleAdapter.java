@@ -4,6 +4,7 @@ import homework_1.domain.User;
 import homework_1.services.*;
 import homework_1.services.impl.GoalServiceImpl;
 
+import java.sql.SQLException;
 import java.util.Scanner;
 
 /**
@@ -29,7 +30,7 @@ public class ConsoleAdapter {
         this.budgetConsoleHandler = new BudgetConsoleHandler(budgetService, scanner);
     }
 
-    public void start() {
+    public void start() throws SQLException {
         boolean running = true;
         while (running) {
             if (authHandler.getCurrentUser() == null) {
@@ -66,7 +67,7 @@ public class ConsoleAdapter {
         }
     }
 
-    private boolean mainMenu() {
+    private boolean mainMenu() throws SQLException {
         while (true) {
             System.out.println("1. Добавить транзакцию");
             System.out.println("2. Просмотреть транзакции");

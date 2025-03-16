@@ -2,6 +2,7 @@ package homework_1.repositories;
 
 import homework_1.domain.Goal;
 
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -18,12 +19,20 @@ public interface GoalRepository {
     void save(Goal goal);
 
     /**
+     * Ищет цель по её имени.
+     *
+     * @param name идентификатор цели
+     * @return {@link Optional}, содержащий цель, если она найдена
+     */
+    Optional<Goal> findByName(String name);
+
+    /**
      * Ищет цель по её идентификатору.
      *
      * @param goalId идентификатор цели
      * @return {@link Optional}, содержащий цель, если она найдена
      */
-    Optional<Goal> findById(UUID goalId);
+    Optional<Goal> findById(long goalId);
 
     /**
      * Возвращает список всех целей пользователя.
@@ -31,7 +40,7 @@ public interface GoalRepository {
      * @param email почта пользователя
      * @return список целей пользователя
      */
-    List<Goal> findByUserEmail(String email);
+    List<Goal> findByUserEmail(String email) throws SQLException;
 
     /**
      * Обновляет данные существующей цели.
@@ -45,5 +54,5 @@ public interface GoalRepository {
      *
      * @param goalId идентификатор цели
      */
-    void delete(UUID goalId);
+    void delete(long goalId);
 }

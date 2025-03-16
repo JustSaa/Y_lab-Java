@@ -26,7 +26,7 @@ class BudgetConsoleHandlerTest {
         //transactionService = mock(TransactionService.class);
         budgetService = mock(BudgetService.class);
         budgetConsoleHandler = new BudgetConsoleHandler(budgetService, new Scanner(System.in));
-        user = new User("Тестовый Пользователь", "test@mail.com", "password123");
+        user = new User("Тестовый Пользователь", "test@mail.com", "password123", false);
     }
 
     @Test

@@ -37,40 +37,46 @@ public class JdbcTransactionRepository implements TransactionRepository {
     @Override
     public void save(Transaction transaction) {
         String sql = """
-                INSERT INTO finance.transactions (id, user_email, amount, type, category, date, description)
-                VALUES (nextval('finance.transactions_seq'), ?, ?, ?, ?, ?, ?)
-                """;
+            INSERT INTO finance.transactions (user_id, amount, type, category, date, description)
+            VALUES (?, ?, ?, ?, ?, ?)
+            RETURNING id
+            """;
 
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setString(1, transaction.getUserEmail());
+            stmt.setLong(1, transaction.getUserId());
             stmt.setDouble(2, transaction.getAmount());
             stmt.setString(3, transaction.getType().name());
             stmt.setString(4, transaction.getCategory().name());
             stmt.setDate(5, Date.valueOf(transaction.getDate()));
             stmt.setString(6, transaction.getDescription());
 
-            stmt.executeUpdate();
+            // Выполняем запрос и получаем сгенерированный id
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                transaction.setId(rs.getLong("id")); // Устанавливаем id после сохранения
+            }
+
         } catch (SQLException e) {
             throw new RuntimeException("Ошибка сохранения транзакции", e);
         }
     }
 
     /**
-     * Ищет транзакцию по идентификатору и email пользователя.
+     * Ищет транзакцию по идентификатору и Id пользователя.
      *
-     * @param userEmail    email пользователя.
+     * @param userId        Id пользователя.
      * @param transactionId уникальный идентификатор транзакции.
      * @return {@link Optional} с объектом {@link Transaction}, если транзакция найдена, иначе пустой {@link Optional}.
      * @throws RuntimeException если произошла ошибка при выполнении запроса.
      */
     @Override
-    public Optional<Transaction> findById(String userEmail, long transactionId) {
+    public Optional<Transaction> findById(long userId, long transactionId) {
         String sql = """
-                SELECT id, user_email, amount, type, category, date, description
-                FROM finance.transactions WHERE user_email = ? AND id = ?
+                SELECT id, user_id, amount, type, category, date, description
+                FROM finance.transactions WHERE user_id = ? AND id = ?
                 """;
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setString(1, userEmail);
+            stmt.setLong(1, userId);
             stmt.setLong(2, transactionId);
 
             ResultSet rs = stmt.executeQuery();
@@ -86,15 +92,15 @@ public class JdbcTransactionRepository implements TransactionRepository {
     /**
      * Возвращает список всех транзакций пользователя.
      *
-     * @param userEmail email пользователя.
+     * @param userId Id пользователя.
      * @return список транзакций.
      * @throws RuntimeException если произошла ошибка при выполнении запроса.
      */
     @Override
-    public List<Transaction> findByUserEmail(String userEmail) {
-        String sql = "SELECT * FROM finance.transactions WHERE user_email = ?";
+    public List<Transaction> findByUserId(long userId) {
+        String sql = "SELECT * FROM finance.transactions WHERE user_id = ?";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setString(1, userEmail);
+            stmt.setLong(1, userId);
             ResultSet rs = stmt.executeQuery();
 
             List<Transaction> transactions = new ArrayList<>();
@@ -137,15 +143,15 @@ public class JdbcTransactionRepository implements TransactionRepository {
     /**
      * Удаляет транзакцию по идентификатору и email пользователя.
      *
-     * @param userEmail    email пользователя.
+     * @param userId        Id пользователя.
      * @param transactionId уникальный идентификатор транзакции.
      * @throws RuntimeException если произошла ошибка при удалении из БД.
      */
     @Override
-    public void delete(String userEmail, long transactionId) {
-        String sql = "DELETE FROM finance.transactions WHERE user_email = ? AND id = ?";
+    public void delete(long userId, long transactionId) {
+        String sql = "DELETE FROM finance.transactions WHERE user_id = ? AND id = ?";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setString(1, userEmail);
+            stmt.setLong(1, userId);
             stmt.setLong(2, transactionId);
             stmt.executeUpdate();
         } catch (SQLException e) {
@@ -156,18 +162,18 @@ public class JdbcTransactionRepository implements TransactionRepository {
     /**
      * Возвращает список транзакций пользователя за указанную дату.
      *
-     * @param email email пользователя.
-     * @param date  дата транзакции.
+     * @param userId Id пользователя.
+     * @param date   дата транзакции.
      * @return список транзакций.
      * @throws RuntimeException если произошла ошибка при выполнении запроса.
      */
     @Override
-    public List<Transaction> findByUserEmailAndDate(String email, LocalDate date) {
+    public List<Transaction> findByUserIdAndDate(long userId, LocalDate date) {
         String sql = """
-                    SELECT * FROM finance.transactions WHERE user_email = ? AND date = ?
+                    SELECT * FROM finance.transactions WHERE user_id = ? AND date = ?
                 """;
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setString(1, email);
+            stmt.setLong(1, userId);
             stmt.setDate(2, Date.valueOf(date));
             ResultSet rs = stmt.executeQuery();
 
@@ -184,19 +190,19 @@ public class JdbcTransactionRepository implements TransactionRepository {
     /**
      * Возвращает список транзакций пользователя по указанной категории.
      *
-     * @param email   email пользователя.
+     * @param userId   Id пользователя.
      * @param category категория транзакции.
      * @return список транзакций.
      * @throws RuntimeException если произошла ошибка при выполнении запроса.
      */
     @Override
-    public List<Transaction> findByUserEmailAndCategory(String email, Category category) {
+    public List<Transaction> findByUserIdAndCategory(long userId, Category category) {
         String sql = """
                 SELECT * FROM finance.transactions
-                WHERE user_email = ? AND category = ?
+                WHERE user_id = ? AND category = ?
                 """;
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setString(1, email);
+            stmt.setLong(1, userId);
             stmt.setString(2, category.name());
             ResultSet rs = stmt.executeQuery();
 
@@ -213,19 +219,19 @@ public class JdbcTransactionRepository implements TransactionRepository {
     /**
      * Возвращает список транзакций пользователя по указанному типу (доход или расход).
      *
-     * @param email email пользователя.
-     * @param type  тип транзакции.
+     * @param userId Id пользователя.
+     * @param type   тип транзакции.
      * @return список транзакций.
      * @throws RuntimeException если произошла ошибка при выполнении запроса.
      */
     @Override
-    public List<Transaction> findByUserEmailAndType(String email, TransactionType type) {
+    public List<Transaction> findByUserIdAndType(long userId, TransactionType type) {
         String sql = """
                 SELECT * FROM finance.transactions
-                WHERE user_email = ? AND type = ?
+                WHERE user_id = ? AND type = ?
                 """;
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setString(1, email);
+            stmt.setLong(1, userId);
             stmt.setString(2, type.name());
             ResultSet rs = stmt.executeQuery();
 
@@ -245,7 +251,7 @@ public class JdbcTransactionRepository implements TransactionRepository {
     private Transaction mapTransaction(ResultSet rs) throws SQLException {
         return new Transaction(
                 rs.getLong("id"),
-                rs.getString("user_email"),
+                rs.getLong("user_id"),
                 rs.getDouble("amount"),
                 TransactionType.valueOf(rs.getString("type")),
                 Category.valueOf(rs.getString("category")),

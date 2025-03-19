@@ -8,5 +8,6 @@
     <include file="db/changelog/db.changelog-00-create-schema.xml"/>
     <include file="db/changelog/db.changelog-01-create-tables.xml"/>
     <include file="db/changelog/db.changelog-02-initial-data.xml"/>
+    <include file="db/changelog/db.changelog-03-update-tables.xml"/>
 
 </databaseChangeLog>

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.15.xsd">
+
+    <changeSet id="update-transactions-user-relation" author="salavat">
+        <dropColumn tableName="transactions" schemaName="finance" columnName="user_email"/>
+        <addColumn tableName="transactions" schemaName="finance">
+            <column name="user_id" type="bigint">
+                <constraints nullable="false" foreignKeyName="fk_transactions_users"
+                             references="finance.users(id)"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="update-goals-user-relation" author="salavat">
+        <dropColumn tableName="goals" schemaName="finance" columnName="user_email"/>
+        <addColumn tableName="goals" schemaName="finance">
+            <column name="user_id" type="bigint">
+                <constraints nullable="false" foreignKeyName="fk_goals_users"
+                             references="finance.users(id)"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="update-budgets-user-relation" author="salavat">
+        <dropColumn tableName="budgets" schemaName="finance" columnName="user_email"/>
+        <addColumn tableName="budgets" schemaName="finance">
+            <column name="user_id" type="bigint">
+                <constraints nullable="false" foreignKeyName="fk_budgets_users"
+                             references="finance.users(id)"/>
+            </column>
+        </addColumn>
+    </changeSet>
+</databaseChangeLog>

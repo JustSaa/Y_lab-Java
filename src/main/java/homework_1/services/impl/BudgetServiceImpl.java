@@ -23,27 +23,27 @@ public class BudgetServiceImpl implements BudgetService {
     }
 
     @Override
-    public void setUserBudget(String userEmail, double limit) {
+    public void setUserBudget(long userId, double limit) {
         if (limit <= 0) {
             throw new IllegalArgumentException("Бюджет должен быть больше 0.");
         }
-        budgetRepository.save(new Budget(userEmail, limit));
+        budgetRepository.save(new Budget(userId, limit));
     }
 
     @Override
-    public Optional<Budget> getUserBudget(String userEmail) {
-        return budgetRepository.findByUserEmail(userEmail);
+    public Optional<Budget> getUserBudget(long userId) {
+        return budgetRepository.findByUserId(userId);
     }
 
     @Override
-    public boolean isBudgetExceeded(String userEmail) {
-        Optional<Budget> budgetOpt = budgetRepository.findByUserEmail(userEmail);
+    public boolean isBudgetExceeded(long userId) {
+        Optional<Budget> budgetOpt = budgetRepository.findByUserId(userId);
         if (budgetOpt.isEmpty()) {
             return false;
         }
 
         Budget budget = budgetOpt.get();
-        double totalExpenses = transactionRepository.findByUserEmailAndType(userEmail, TransactionType.EXPENSE)
+        double totalExpenses = transactionRepository.findByUserIdAndType(userId, TransactionType.EXPENSE)
                 .stream()
                 .mapToDouble(Transaction::getAmount)
                 .sum();

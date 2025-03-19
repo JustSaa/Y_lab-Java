@@ -4,6 +4,7 @@ import homework_1.domain.Goal;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
@@ -17,12 +18,35 @@ class JdbcGoalRepositoryTest extends AbstractTestContainerTest {
     @BeforeEach
     void setUp() {
         goalRepository = new JdbcGoalRepository(connection);
+        try (PreparedStatement stmt = connection.prepareStatement("DELETE FROM finance.goals")) {
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        try (PreparedStatement stmt = connection.prepareStatement("DELETE FROM finance.users WHERE id = ?")) {
+            stmt.setLong(1, 0);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        String userSql = "INSERT INTO finance.users (id, name, email, password, is_admin, is_blocked) VALUES (?, ?, ?, ?, ?, ?)";
+        try (PreparedStatement stmt = connection.prepareStatement(userSql)) {
+            stmt.setLong(1, 0);
+            stmt.setString(2, "Test User");
+            stmt.setString(3, "test@example.com");
+            stmt.setString(4, "password");
+            stmt.setBoolean(5, false);
+            stmt.setBoolean(6, false);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Ошибка при создании тестового пользователя", e);
+        }
     }
 
     @Test
-    void shouldSaveAndFindGoalByName() {
-        String email = "test1@user.com";
-        Goal goal = new Goal(email, "Buy Car", 10000.0);
+    void shouldSaveAndFindGoalByUserId() {
+        long userId = 0;
+        Goal goal = new Goal(userId, "Buy Car", 10000.0);
         goalRepository.save(goal);
 
         Optional<Goal> foundGoal = goalRepository.findByName("Buy Car");
@@ -33,12 +57,12 @@ class JdbcGoalRepositoryTest extends AbstractTestContainerTest {
     }
 
     @Test
-    void shouldFindGoalsByUserEmail() throws SQLException {
-        String email = "testFor@user.com";
-        goalRepository.save(new Goal(email, "Trip to Japan", 5000.0));
-        goalRepository.save(new Goal(email, "MacBook", 3000.0));
+    void shouldFindGoalsByUserId() throws SQLException {
+        long userId = 0;
+        goalRepository.save(new Goal(userId, "Trip to Japan", 5000.0));
+        goalRepository.save(new Goal(userId, "MacBook", 3000.0));
 
-        List<Goal> goals = goalRepository.findByUserEmail(email);
+        List<Goal> goals = goalRepository.findByUserId(userId);
 
         assertThat(goals).hasSize(2);
         assertThat(goals).extracting(Goal::getName).contains("Trip to Japan", "MacBook");
@@ -46,8 +70,8 @@ class JdbcGoalRepositoryTest extends AbstractTestContainerTest {
 
     @Test
     void shouldUpdateGoal() {
-        String email = "test@user.com";
-        Goal goal = new Goal(email, "New Goal", 4000.0);
+        long userId = 0;
+        Goal goal = new Goal(userId, "New Goal", 4000.0);
         goalRepository.save(goal);
 
         goal.setCurrentAmount(2000.0);
@@ -62,8 +86,8 @@ class JdbcGoalRepositoryTest extends AbstractTestContainerTest {
 
     @Test
     void shouldDeleteGoal() {
-        String email = "test@user.com";
-        Goal goal = new Goal(email, "Delete Me", 3000.0);
+        long userId = 0;
+        Goal goal = new Goal(userId, "Delete Me", 3000.0);
         goalRepository.save(goal);
 
         goalRepository.delete(goal.getId());

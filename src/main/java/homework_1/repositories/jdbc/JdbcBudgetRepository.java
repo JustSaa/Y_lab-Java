@@ -29,15 +29,15 @@ public class JdbcBudgetRepository implements BudgetRepository {
     /**
      * Сохраняет новый бюджет пользователя в базе данных.
      *
-     * @param budget объект {@link Budget}, содержащий email пользователя и лимит бюджета.
+     * @param budget объект {@link Budget}, содержащий Id пользователя и лимит бюджета.
      * @throws RuntimeException если произошла ошибка при сохранении в БД.
      */
     @Override
     public void save(Budget budget) {
-        String sql = "INSERT INTO finance.budgets (id, user_email, budget_limit) VALUES (nextval('finance.budgets_seq'), ?, ?)";
+        String sql = "INSERT INTO finance.budgets (id, user_id, budget_limit) VALUES (nextval('finance.budgets_seq'), ?, ?)";
 
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setString(1, budget.getUserEmail());
+            stmt.setLong(1, budget.getUserId());
             stmt.setDouble(2, budget.getLimit());
             stmt.executeUpdate();
         } catch (SQLException e) {
@@ -48,21 +48,21 @@ public class JdbcBudgetRepository implements BudgetRepository {
     /**
      * Ищет бюджет пользователя по его email.
      *
-     * @param userEmail email пользователя, для которого нужно найти бюджет.
+     * @param userId Id пользователя, для которого нужно найти бюджет.
      * @return {@link Optional} с объектом {@link Budget}, если бюджет найден, иначе пустой {@link Optional}.
      * @throws RuntimeException если произошла ошибка при выполнении запроса.
      */
     @Override
-    public Optional<Budget> findByUserEmail(String userEmail) {
-        String sql = "SELECT * FROM finance.budgets WHERE user_email = ?";
+    public Optional<Budget> findByUserId(long userId) {
+        String sql = "SELECT * FROM finance.budgets WHERE user_id = ?";
 
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setString(1, userEmail);
+            stmt.setLong(1, userId);
 
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     Budget budget = new Budget(
-                            rs.getString("user_email"),
+                            rs.getLong("user_id"),
                             rs.getDouble("budget_limit")
                     );
                     return Optional.of(budget);

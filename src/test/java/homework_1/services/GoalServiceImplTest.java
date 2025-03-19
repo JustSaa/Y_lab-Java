@@ -10,6 +10,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
@@ -27,34 +29,34 @@ class GoalServiceImplTest {
     @InjectMocks
     private GoalServiceImpl goalServiceImpl;
 
-    private String userEmail;
+    private long userId;
     private Goal goal;
 
     @BeforeEach
     void setUp() {
-        userEmail = "example@mail.com";
-        goal = new Goal(userEmail, "Путешествие", 10000);
+        userId = 0;
+        goal = new Goal(userId, "Путешествие", 10000);
     }
 
     @Test
     void createGoal_ShouldSaveGoal() {
-        goalServiceImpl.createGoal(userEmail, "Путешествие", 10000);
+        goalServiceImpl.createGoal(userId, "Путешествие", 10000);
 
         verify(goalRepository, times(1)).save(any(Goal.class));
     }
 
     @Test
     void createGoal_InvalidAmount_ShouldThrowException() {
-        assertThatThrownBy(() -> goalServiceImpl.createGoal(userEmail, "Путешествие", -100))
+        assertThatThrownBy(() -> goalServiceImpl.createGoal(userId, "Путешествие", -100))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Цель должна быть положительной.");
     }
 
     @Test
     void getUserGoals_ShouldReturnGoals() throws SQLException {
-        when(goalRepository.findByUserEmail(userEmail)).thenReturn(List.of(goal));
+        when(goalRepository.findByUserId(userId)).thenReturn(List.of(goal));
 
-        List<Goal> goals = goalServiceImpl.getUserGoals(userEmail);
+        List<Goal> goals = goalServiceImpl.getUserGoals(userId);
 
         assertThat(goals).containsExactly(goal);
     }
@@ -71,13 +73,20 @@ class GoalServiceImplTest {
     }
 
     @Test
-    void addToGoal_InvalidAmount_ShouldThrowException() {
-        String goalName = goal.getName();
+    void addToGoal_InvalidAmount_ShouldPrintErrorMessage() {
+        ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+        System.setOut(new PrintStream(outContent));
+
+        GoalServiceImpl goalService = new GoalServiceImpl(goalRepository);
+        String goalName = "TestGoal";
+
         when(goalRepository.findByName(goalName)).thenReturn(Optional.of(goal));
 
-        assertThatThrownBy(() -> goalServiceImpl.addToGoal(goalName, -100))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Сумма должна быть положительной.");
+        goalService.addToGoal(goalName, -100);
+
+        assertThat(outContent.toString()).contains("⚠️ Ошибка: сумма должна быть положительной.");
+
+        System.setOut(System.out);
     }
 
     @Test

@@ -8,8 +8,8 @@ public interface NotificationService {
     /**
      * Отправляет уведомление пользователю.
      *
-     * @param userEmail email пользователя
+     * @param userId  Id пользователя
      * @param message текст уведомления
      */
-    void sendNotification(String userEmail, String message);
+    void sendNotification(long userId, String message);
 }

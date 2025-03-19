@@ -34,11 +34,11 @@ public class JdbcGoalRepository implements GoalRepository {
     @Override
     public void save(Goal goal) {
         String sql = """
-                INSERT INTO finance.goals (id, user_email, name, target_amount, current_amount)
+                INSERT INTO finance.goals (id, user_id, name, target_amount, current_amount)
                 VALUES (nextval('finance.goals_seq'), ?, ?, ?, ?)
                 """;
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setString(1, goal.getUserEmail());
+            stmt.setLong(1, goal.getUserId());
             stmt.setString(2, goal.getName());
             stmt.setDouble(3, goal.getTargetAmount());
             stmt.setDouble(4, goal.getCurrentAmount());
@@ -81,7 +81,7 @@ public class JdbcGoalRepository implements GoalRepository {
      */
     @Override
     public Optional<Goal> findByName(String name) {
-        String sql = "SELECT id, user_email, name, target_amount, current_amount FROM finance.goals WHERE name = ?";
+        String sql = "SELECT id, user_id, name, target_amount, current_amount FROM finance.goals WHERE name = ?";
 
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, name);
@@ -100,22 +100,22 @@ public class JdbcGoalRepository implements GoalRepository {
     /**
      * Получает список всех финансовых целей пользователя.
      *
-     * @param email email пользователя.
+     * @param userId Id пользователя.
      * @return список целей {@link Goal}.
      * @throws SQLException если произошла ошибка при выполнении запроса.
      */
     @Override
-    public List<Goal> findByUserEmail(String email) throws SQLException {
+    public List<Goal> findByUserId(long userId) throws SQLException {
         String sql = """
-                SELECT id, user_email, name, target_amount, current_amount
+                SELECT id, user_id, name, target_amount, current_amount
                 FROM finance.goals
-                WHERE user_email = ?
+                WHERE user_id = ?
                 """;
 
         List<Goal> goals = new ArrayList<>();
 
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setString(1, email);
+            stmt.setLong(1, userId);
 
             try (var rs = stmt.executeQuery()) {
                 while (rs.next()) {
@@ -176,7 +176,7 @@ public class JdbcGoalRepository implements GoalRepository {
     private Goal mapGoal(ResultSet rs) throws SQLException {
         return new Goal(
                 rs.getLong("id"),
-                rs.getString("user_email"),
+                rs.getLong("user_id"),
                 rs.getString("name"),
                 rs.getDouble("target_amount"),
                 rs.getDouble("current_amount")

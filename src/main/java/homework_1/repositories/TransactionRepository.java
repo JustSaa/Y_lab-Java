@@ -22,12 +22,12 @@ public interface TransactionRepository {
     void save(Transaction transaction);
 
     /**
-     * Получение списка транзакций пользователя по его Почте.
+     * Получение списка транзакций пользователя по его Id.
      *
-     * @param userEmail почта пользователя
+     * @param userId почта пользователя
      * @return список транзакций пользователя
      */
-    List<Transaction> findByUserEmail(String userEmail);
+    List<Transaction> findByUserId(long userId);
 
     /**
      * Обновление существующей транзакции.
@@ -39,44 +39,44 @@ public interface TransactionRepository {
     /**
      * Удаление транзакции пользователя по ID.
      *
-     * @param userEmail     почта пользователя
+     * @param userId        Id пользователя
      * @param transactionId идентификатор транзакции
      */
-    void delete(String userEmail, long transactionId);
+    void delete(long userId, long transactionId);
 
     /**
      * Поиск транзакции по ID.
      *
-     * @param userEmail     почта пользователя
+     * @param userId        Id пользователя
      * @param transactionId идентификатор транзакции
      * @return Optional с транзакцией или пустой, если не найдено
      */
-    Optional<Transaction> findById(String userEmail, long transactionId);
+    Optional<Transaction> findById(long userId, long transactionId);
 
     /**
      * Возвращает список транзакций пользователя за указанную дату.
      *
-     * @param email почта пользователя
-     * @param date  дата транзакции
+     * @param userId Id пользователя
+     * @param date   дата транзакции
      * @return список транзакций за указанную дату
      */
-    List<Transaction> findByUserEmailAndDate(String email, LocalDate date);
+    List<Transaction> findByUserIdAndDate(long userId, LocalDate date);
 
     /**
      * Возвращает список транзакций пользователя по категории.
      *
-     * @param email    почта пользователя
+     * @param userId   Id пользователя
      * @param category категория транзакции
      * @return список транзакций указанной категории
      */
-    List<Transaction> findByUserEmailAndCategory(String email, Category category);
+    List<Transaction> findByUserIdAndCategory(long userId, Category category);
 
     /**
      * Возвращает список транзакций пользователя по их типу (доход или расход).
      *
-     * @param email почта пользователя
-     * @param type  тип транзакции (доход или расход)
+     * @param userId почта пользователя
+     * @param type   тип транзакции (доход или расход)
      * @return список транзакций указанного типа
      */
-    List<Transaction> findByUserEmailAndType(String email, TransactionType type);
+    List<Transaction> findByUserIdAndType(long userId, TransactionType type);
 }

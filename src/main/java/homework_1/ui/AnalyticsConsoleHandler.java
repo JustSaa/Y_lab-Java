@@ -29,7 +29,7 @@ public class AnalyticsConsoleHandler {
             return;
         }
 
-        String report = analyticsService.generateFinancialReport(currentUser.getEmail());
+        String report = analyticsService.generateFinancialReport(currentUser.getId());
         System.out.println(report);
     }
 
@@ -49,8 +49,8 @@ public class AnalyticsConsoleHandler {
         System.out.println("Введите конечную дату (ГГГГ-ММ-ДД):");
         String endDate = scanner.nextLine();
 
-        double income = analyticsService.getTotalIncome(currentUser.getEmail(), startDate, endDate);
-        double expenses = analyticsService.getTotalExpenses(currentUser.getEmail(), startDate, endDate);
+        double income = analyticsService.getTotalIncome(currentUser.getId(), startDate, endDate);
+        double expenses = analyticsService.getTotalExpenses(currentUser.getId(), startDate, endDate);
 
         System.out.println("Доход за выбранный период: " + income);
         System.out.println("Расход за выбранный период: " + expenses);
@@ -67,7 +67,7 @@ public class AnalyticsConsoleHandler {
             return;
         }
 
-        String report = analyticsService.analyzeExpensesByCategory(currentUser.getEmail());
+        String report = analyticsService.analyzeExpensesByCategory(currentUser.getId());
         System.out.println(report);
     }
 }

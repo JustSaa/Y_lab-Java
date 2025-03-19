@@ -8,36 +8,36 @@ public interface AnalyticsService {
     /**
      * Возвращает сумму доходов пользователя за указанный период.
      *
-     * @param userEmail email пользователя
+     * @param userId    Id пользователя
      * @param startDate начальная дата
-     * @param endDate конечная дата
+     * @param endDate   конечная дата
      * @return сумма доходов
      */
-    double getTotalIncome(String userEmail, String startDate, String endDate);
+    double getTotalIncome(long userId, String startDate, String endDate);
 
     /**
      * Возвращает сумму расходов пользователя за указанный период.
      *
-     * @param userEmail email пользователя
+     * @param userId    Id пользователя
      * @param startDate начальная дата
-     * @param endDate конечная дата
+     * @param endDate   конечная дата
      * @return сумма расходов
      */
-    double getTotalExpenses(String userEmail, String startDate, String endDate);
+    double getTotalExpenses(long userId, String startDate, String endDate);
 
     /**
      * Анализ расходов по категориям.
      *
-     * @param userEmail email пользователя
+     * @param userId Id пользователя
      * @return строка с аналитикой по категориям
      */
-    String analyzeExpensesByCategory(String userEmail);
+    String analyzeExpensesByCategory(long userId);
 
     /**
      * Генерирует отчёт о текущем финансовом состоянии.
      *
-     * @param userEmail email пользователя
+     * @param userId Id пользователя
      * @return текстовый отчёт
      */
-    String generateFinancialReport(String userEmail);
+    String generateFinancialReport(long userId);
 }

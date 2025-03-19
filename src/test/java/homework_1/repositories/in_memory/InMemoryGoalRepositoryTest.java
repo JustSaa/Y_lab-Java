@@ -16,15 +16,15 @@ class InMemoryGoalRepositoryTest {
     private GoalRepository goalRepository;
     private Goal goal1;
     private Goal goal2;
-    private String userEmail;
+    private long userId;
 
     @BeforeEach
     void setUp() {
         goalRepository = new InMemoryGoalRepository();
-        userEmail = "test@mail.com";
+        userId = 0;
 
-        goal1 = new Goal(1, userEmail, "Накопить на ноутбук", 1000.0, 0);
-        goal2 = new Goal(2, userEmail, "Отпуск", 5000.0, 0);
+        goal1 = new Goal(1, userId, "Накопить на ноутбук", 1000.0, 0);
+        goal2 = new Goal(2, userId, "Отпуск", 5000.0, 0);
 
         goalRepository.save(goal1);
         goalRepository.save(goal2);
@@ -49,7 +49,7 @@ class InMemoryGoalRepositoryTest {
 
     @Test
     void findByUserEmail_ShouldReturnUserGoals() throws SQLException {
-        List<Goal> goals = goalRepository.findByUserEmail(userEmail);
+        List<Goal> goals = goalRepository.findByUserId(userId);
 
         assertThat(goals).hasSize(2);
         assertThat(goals).extracting(Goal::getName).containsExactlyInAnyOrder("Накопить на ноутбук", "Отпуск");

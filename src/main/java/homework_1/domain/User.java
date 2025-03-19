@@ -32,20 +32,25 @@ public class User {
     private boolean isBlocked = false;
 
     /**
-     * Конструктор со всеми полями.
+     * Конструктор для создания нового пользователя (без ID).
      *
      * @param name     имя пользователя
      * @param email    email
      * @param password пароль
-     * @param isAdmin является ли пользователь Админом
+     * @param isAdmin  является ли пользователь Админом
      */
     public User(String name, String email, String password, boolean isAdmin) {
+        this.id = 0;
         this.name = name;
         this.email = email;
         this.password = password;
         this.isAdmin = isAdmin;
+        this.isBlocked = false;
     }
 
+    /**
+     * Конструктор для загрузки пользователя из БД.
+     */
     public User(long id, String name, String email, String password, boolean isAdmin, boolean isBlocked) {
         this.id = id;
         this.name = name;
@@ -95,21 +100,29 @@ public class User {
         isBlocked = blocked;
     }
 
+    public long getId() {
+        return id;
+    }
+
+    public void setId(long id) {
+        this.id = id;
+    }
+
     @Override
     public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
         User user = (User) o;
-        return email.equals(user.email);
+        return Objects.equals(email, user.email) &&
+                Objects.equals(name, user.name) &&
+                Objects.equals(password, user.password) &&
+                isAdmin == user.isAdmin &&
+                isBlocked == user.isBlocked;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(email);
+        return Objects.hash(email, name, password, isAdmin, isBlocked);
     }
 
     @Override

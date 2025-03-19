@@ -31,7 +31,7 @@ public class GoalConsoleHandler {
         System.out.println("Введите сумму накопления:");
         double amount = Double.parseDouble(scanner.nextLine());
 
-        goalService.createGoal(user.getEmail(), name, amount);
+        goalService.createGoal(user.getId(), name, amount);
         System.out.println("Цель добавлена.");
     }
 
@@ -39,7 +39,7 @@ public class GoalConsoleHandler {
      * Отображает список целей пользователя.
      */
     public void showGoals(User user) throws SQLException {
-        List<Goal> goals = goalService.getUserGoals(user.getEmail());
+        List<Goal> goals = goalService.getUserGoals(user.getId());
         goals.forEach(goal -> System.out.println(goal.getName() + " - " +
                 goal.getCurrentAmount() + "/" + goal.getTargetAmount()));
     }

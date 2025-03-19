@@ -45,15 +45,15 @@ public class TransactionServiceImpl implements TransactionService {
      */
     @Override
     public void createTransaction(Transaction transaction) {
-        double totalExpenses = transactionRepository.findByUserEmailAndType(transaction.getUserEmail(), TransactionType.EXPENSE)
+        double totalExpenses = transactionRepository.findByUserIdAndType(transaction.getUserId(), TransactionType.EXPENSE)
                 .stream().mapToDouble(Transaction::getAmount).sum();
 
-        double budgetLimit = budgetService.getUserBudget(transaction.getUserEmail())
+        double budgetLimit = budgetService.getUserBudget(transaction.getUserId())
                 .map(Budget::getLimit)
                 .orElse(Double.MAX_VALUE);
 
         if (transaction.getType() == TransactionType.EXPENSE && (totalExpenses + transaction.getAmount()) > budgetLimit) {
-            notificationService.sendNotification(transaction.getUserEmail(),
+            notificationService.sendNotification(transaction.getUserId(),
                     "Ваши расходы превысили установленный бюджет!");
             System.out.println("Внимание! Ваши расходы превысили установленный бюджет. Транзакция не сохранена.");
             return;
@@ -63,8 +63,8 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public List<Transaction> getTransactions(String userEmail) {
-        return Collections.unmodifiableList(transactionRepository.findByUserEmail(userEmail));
+    public List<Transaction> getTransactions(long userId) {
+        return Collections.unmodifiableList(transactionRepository.findByUserId(userId));
     }
 
     @Override
@@ -73,35 +73,35 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public void deleteTransaction(String userEmail, long transactionId) {
-        transactionRepository.delete(userEmail, transactionId);
+    public void deleteTransaction(long userId, long transactionId) {
+        transactionRepository.delete(userId, transactionId);
     }
 
     @Override
-    public double calculateBalance(String userEmail) {
-        List<Transaction> transactions = transactionRepository.findByUserEmail(userEmail);
+    public double calculateBalance(long userId) {
+        List<Transaction> transactions = transactionRepository.findByUserId(userId);
         return transactions.stream()
                 .mapToDouble(t -> t.getType() == TransactionType.INCOME ? t.getAmount() : -t.getAmount())
                 .sum();
     }
 
     @Override
-    public List<Transaction> getTransactionsByDate(String email, LocalDate date) {
-        return transactionRepository.findByUserEmailAndDate(email, date);
+    public List<Transaction> getTransactionsByDate(long userId, LocalDate date) {
+        return transactionRepository.findByUserIdAndDate(userId, date);
     }
 
     @Override
-    public List<Transaction> getTransactionsByCategory(String email, Category category) {
-        return transactionRepository.findByUserEmailAndCategory(email, category);
+    public List<Transaction> getTransactionsByCategory(long userId, Category category) {
+        return transactionRepository.findByUserIdAndCategory(userId, category);
     }
 
     @Override
-    public List<Transaction> getTransactionsByType(String email, TransactionType type) {
-        return transactionRepository.findByUserEmailAndType(email, type);
+    public List<Transaction> getTransactionsByType(long userId, TransactionType type) {
+        return transactionRepository.findByUserIdAndType(userId, type);
     }
 
     @Override
-    public boolean isBudgetExceeded(String email) {
+    public boolean isBudgetExceeded(long userId) {
         return false;
     }
 }

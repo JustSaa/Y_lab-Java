@@ -32,11 +32,12 @@ public class JdbcUserRepository implements UserRepository {
     @Override
     public void save(User user) {
         String sql = """
-                INSERT INTO finance.users (id, name, email, password, is_admin, is_blocked)
-                VALUES (nextval('finance.users_seq'), ?, ?, ?, ?, ?)
-                """;
+            INSERT INTO finance.users (name, email, password, is_admin, is_blocked)
+            VALUES (?, ?, ?, ?, ?)
+            RETURNING id
+            """;
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (PreparedStatement stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setString(1, user.getName());
             stmt.setString(2, user.getEmail());
             stmt.setString(3, user.getPassword());
@@ -44,6 +45,13 @@ public class JdbcUserRepository implements UserRepository {
             stmt.setBoolean(5, user.isBlocked());
 
             stmt.executeUpdate();
+
+            // Получаем сгенерированный ID
+            try (ResultSet rs = stmt.getGeneratedKeys()) {
+                if (rs.next()) {
+                    user.setId(rs.getLong("id")); // Устанавливаем ID после сохранения
+                }
+            }
         } catch (SQLException e) {
             throw new RuntimeException("Ошибка сохранения пользователя", e);
         }

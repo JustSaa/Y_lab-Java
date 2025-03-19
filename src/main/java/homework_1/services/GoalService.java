@@ -13,25 +13,25 @@ public interface GoalService {
     /**
      * Создаёт новую цель.
      *
-     * @param userEmail    почта пользователя
+     * @param userId       Id пользователя
      * @param name         название цели
      * @param targetAmount сумма, которую нужно накопить
      */
-    void createGoal(String userEmail, String name, double targetAmount);
+    void createGoal(long userId, String name, double targetAmount);
 
     /**
      * Возвращает все цели пользователя.
      *
-     * @param userEmail почта пользователя
+     * @param userId почта пользователя
      * @return список целей
      */
-    List<Goal> getUserGoals(String userEmail) throws SQLException;
+    List<Goal> getUserGoals(long userId) throws SQLException;
 
     /**
      * Пополняет сумму накопления цели.
      *
      * @param nameGoal название цели
-     * @param amount сумма для пополнения
+     * @param amount   сумма для пополнения
      */
     void addToGoal(String nameGoal, double amount);
 

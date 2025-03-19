@@ -19,8 +19,8 @@ public interface BudgetRepository {
     /**
      * Получает бюджет пользователя.
      *
-     * @param userEmail почта пользователя
+     * @param userId Id пользователя
      * @return объект бюджета (если есть)
      */
-    Optional<Budget> findByUserEmail(String userEmail);
+    Optional<Budget> findByUserId(long userId);
 }

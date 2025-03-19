@@ -12,12 +12,12 @@ public class Transaction {
     /**
      * Уникальный идентификатор транзакции.
      */
-    private final long id;
+    private long id;
 
     /**
-     * Почта пользователя, которому принадлежит транзакция.
+     * Id пользователя, которому принадлежит транзакция.
      */
-    private final String userEmail;
+    private final long userId;
 
     /**
      * Сумма транзакции.
@@ -47,17 +47,17 @@ public class Transaction {
     /**
      * Конструктор для создания новой транзакции.
      *
-     * @param userEmail   почта пользователя
+     * @param userId      Id пользователя
      * @param amount      сумма транзакции
      * @param type        тип транзакции (доход или расход)
      * @param category    категория транзакции
      * @param date        дата транзакции
      * @param description описание транзакции
      */
-    public Transaction(long id, String userEmail, double amount, TransactionType type,
+    public Transaction(long id, long userId, double amount, TransactionType type,
                        Category category, LocalDate date, String description) {
         this.id = id;
-        this.userEmail = userEmail;
+        this.userId = userId;
         this.amount = amount;
         this.type = type;
         this.category = category;
@@ -75,22 +75,26 @@ public class Transaction {
         }
         Transaction that = (Transaction) o;
         return Double.compare(that.amount, amount) == 0
-                && Objects.equals(id, that.id) && Objects.equals(userEmail, that.userEmail)
+                && Objects.equals(id, that.id) && Objects.equals(userId, that.userId)
                 && type == that.type && category == that.category && Objects.equals(date, that.date)
                 && Objects.equals(description, that.description);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, userEmail, amount, type, category, date, description);
+        return Objects.hash(id, userId, amount, type, category, date, description);
     }
 
     public long getId() {
         return id;
     }
 
-    public String getUserEmail() {
-        return userEmail;
+    public void setId(long id) {
+        this.id = id;
+    }
+
+    public long getUserId() {
+        return userId;
     }
 
     public double getAmount() {
@@ -137,7 +141,7 @@ public class Transaction {
     public String toString() {
         return "Transaction{" +
                 "id=" + id +
-                ", userEmail=" + userEmail +
+                ", userId=" + userId +
                 ", amount=" + amount +
                 ", type=" + type +
                 ", category=" + category +

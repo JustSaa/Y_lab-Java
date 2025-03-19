@@ -52,13 +52,13 @@ public class InMemoryGoalRepository implements GoalRepository {
     /**
      * Возвращает список всех целей пользователя.
      *
-     * @param email почта пользователя
+     * @param userId Id пользователя
      * @return список целей пользователя
      */
     @Override
-    public List<Goal> findByUserEmail(String email) {
+    public List<Goal> findByUserId(long userId) {
         return goals.values().stream()
-                .filter(goal -> goal.getUserEmail().equals(email))
+                .filter(goal -> goal.getUserId() == (userId))
                 .toList();
     }
 

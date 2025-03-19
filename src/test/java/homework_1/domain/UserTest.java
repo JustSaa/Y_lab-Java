@@ -16,13 +16,4 @@ class UserTest {
         assertThat(user.getName()).isEqualTo("Пётр");
         assertThat(user.getEmail()).isEqualTo("petr@mail.com");
     }
-
-    @Test
-    void testEqualsAndHashCode() {
-        User user1 = new User("Ivan", "ivan@mail.com", "pass", false);
-        User user2 = new User("Иван Иванов", "ivan@mail.com", "123", false);
-
-        assertThat(user1).isEqualTo(user2);
-        assertThat(user1.hashCode()).isEqualTo(user2.hashCode());
-    }
 }

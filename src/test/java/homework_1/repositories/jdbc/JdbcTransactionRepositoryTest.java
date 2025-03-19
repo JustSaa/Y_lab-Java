@@ -6,6 +6,9 @@ import homework_1.domain.TransactionType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -15,19 +18,51 @@ import static org.assertj.core.api.Assertions.assertThat;
 class JdbcTransactionRepositoryTest extends AbstractTestContainerTest {
 
     private JdbcTransactionRepository transactionRepository;
+    private long userId;
 
     @BeforeEach
     void setUp() {
         transactionRepository = new JdbcTransactionRepository(connection);
+
+        try (PreparedStatement stmt = connection.prepareStatement("DELETE FROM finance.transactions")) {
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+        try (PreparedStatement stmt = connection.prepareStatement("DELETE FROM finance.users")) {
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+        String userSql = """
+            INSERT INTO finance.users (name, email, password, is_admin, is_blocked) 
+            VALUES (?, ?, ?, ?, ?) RETURNING id
+            """;
+        try (PreparedStatement stmt = connection.prepareStatement(userSql)) {
+            stmt.setString(1, "Test User");
+            stmt.setString(2, "test@example.com");
+            stmt.setString(3, "password");
+            stmt.setBoolean(4, false);
+            stmt.setBoolean(5, false);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    userId = rs.getLong(1); // Теперь userId будет корректным
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Ошибка при создании тестового пользователя", e);
+        }
     }
 
     @Test
     void shouldSaveAndFindTransactionById() {
-        String userEmail = "user@mail.com";
-        Transaction transaction = new Transaction(1, userEmail, 1500.0, TransactionType.INCOME, Category.SALARY, LocalDate.now(), "Зарплата");
+        Transaction transaction = new Transaction(1, userId, 1500.0, TransactionType.INCOME, Category.SALARY, LocalDate.now(), "Зарплата");
         transactionRepository.save(transaction);
 
-        Optional<Transaction> foundTransaction = transactionRepository.findById(userEmail, transaction.getId());
+        Optional<Transaction> foundTransaction = transactionRepository.findById(userId, transaction.getId());
 
         assertThat(foundTransaction).isPresent();
         assertThat(foundTransaction.get().getAmount()).isEqualTo(1500.0);
@@ -36,11 +71,10 @@ class JdbcTransactionRepositoryTest extends AbstractTestContainerTest {
 
     @Test
     void shouldFindTransactionsByUserEmail() {
-        String userEmail = "userT@mail.com";
-        transactionRepository.save(new Transaction(1, userEmail, 1000.0, TransactionType.INCOME, Category.SALARY, LocalDate.now(), "Зарплата"));
-        transactionRepository.save(new Transaction(2, userEmail, 500.0, TransactionType.EXPENSE, Category.FOOD, LocalDate.now(), "Обед"));
+        transactionRepository.save(new Transaction(1, userId, 1000.0, TransactionType.INCOME, Category.SALARY, LocalDate.now(), "Зарплата"));
+        transactionRepository.save(new Transaction(2, userId, 500.0, TransactionType.EXPENSE, Category.FOOD, LocalDate.now(), "Обед"));
 
-        List<Transaction> transactions = transactionRepository.findByUserEmail(userEmail);
+        List<Transaction> transactions = transactionRepository.findByUserId(userId);
 
         assertThat(transactions).hasSize(2);
         assertThat(transactions).extracting(Transaction::getCategory).contains(Category.SALARY, Category.FOOD);
@@ -48,11 +82,10 @@ class JdbcTransactionRepositoryTest extends AbstractTestContainerTest {
 
     @Test
     void shouldFindTransactionsByCategory() {
-        String userEmail = "userTest@mail.com";
-        transactionRepository.save(new Transaction(1, userEmail, 200.0, TransactionType.EXPENSE, Category.FOOD, LocalDate.now(), "Завтрак"));
-        transactionRepository.save(new Transaction(2, userEmail, 300.0, TransactionType.EXPENSE, Category.FOOD, LocalDate.now(), "Ужин"));
+        transactionRepository.save(new Transaction(1, userId, 200.0, TransactionType.EXPENSE, Category.FOOD, LocalDate.now(), "Завтрак"));
+        transactionRepository.save(new Transaction(2, userId, 300.0, TransactionType.EXPENSE, Category.FOOD, LocalDate.now(), "Ужин"));
 
-        List<Transaction> transactions = transactionRepository.findByUserEmailAndCategory(userEmail, Category.FOOD);
+        List<Transaction> transactions = transactionRepository.findByUserIdAndCategory(userId, Category.FOOD);
 
         assertThat(transactions).hasSize(2);
         assertThat(transactions).extracting(Transaction::getAmount).contains(200.0, 300.0);
@@ -60,11 +93,10 @@ class JdbcTransactionRepositoryTest extends AbstractTestContainerTest {
 
     @Test
     void shouldFindTransactionsByType() {
-        String userEmail = "userTest@mail.com";
-        transactionRepository.save(new Transaction(1, userEmail, 500.0, TransactionType.INCOME, Category.SALARY, LocalDate.now(), "Бонус"));
-        transactionRepository.save(new Transaction(2, userEmail, 100.0, TransactionType.EXPENSE, Category.ENTERTAINMENT, LocalDate.now(), "Кино"));
+        transactionRepository.save(new Transaction(1, userId, 500.0, TransactionType.INCOME, Category.SALARY, LocalDate.now(), "Бонус"));
+        transactionRepository.save(new Transaction(2, userId, 100.0, TransactionType.EXPENSE, Category.ENTERTAINMENT, LocalDate.now(), "Кино"));
 
-        List<Transaction> incomeTransactions = transactionRepository.findByUserEmailAndType(userEmail, TransactionType.INCOME);
+        List<Transaction> incomeTransactions = transactionRepository.findByUserIdAndType(userId, TransactionType.INCOME);
 
         assertThat(incomeTransactions).hasSize(1);
         assertThat(incomeTransactions.get(0).getCategory()).isEqualTo(Category.SALARY);
@@ -72,16 +104,21 @@ class JdbcTransactionRepositoryTest extends AbstractTestContainerTest {
 
     @Test
     void shouldUpdateTransaction() {
-        String userEmail = "user@mail.com";
-        Transaction transaction = new Transaction(1, userEmail, 500.0, TransactionType.EXPENSE, Category.FOOD, LocalDate.now(), "Ресторан");
+        Transaction transaction = new Transaction(1, userId, 500.0, TransactionType.EXPENSE, Category.FOOD, LocalDate.now(), "Ресторан");
         transactionRepository.save(transaction);
 
+        // Проверяем, что транзакция действительно сохранилась
+        Optional<Transaction> savedTransaction = transactionRepository.findById(userId, transaction.getId());
+        assertThat(savedTransaction).isPresent();
+
+        // Обновляем транзакцию
         transaction.setAmount(700.0);
         transaction.setCategory(Category.ENTERTAINMENT);
         transaction.setDescription("Изменено");
         transactionRepository.update(transaction);
 
-        Optional<Transaction> updatedTransaction = transactionRepository.findById(userEmail, transaction.getId());
+        // Проверяем, что обновление сработало
+        Optional<Transaction> updatedTransaction = transactionRepository.findById(userId, transaction.getId());
 
         assertThat(updatedTransaction).isPresent();
         assertThat(updatedTransaction.get().getAmount()).isEqualTo(700.0);
@@ -90,13 +127,12 @@ class JdbcTransactionRepositoryTest extends AbstractTestContainerTest {
 
     @Test
     void shouldDeleteTransaction() {
-        String userEmail = "user@mail.com";
-        Transaction transaction = new Transaction(1, userEmail, 300.0, TransactionType.EXPENSE, Category.TRANSPORT, LocalDate.now(), "Такси");
+        Transaction transaction = new Transaction(1, userId, 300.0, TransactionType.EXPENSE, Category.TRANSPORT, LocalDate.now(), "Такси");
         transactionRepository.save(transaction);
 
-        transactionRepository.delete(userEmail, transaction.getId());
+        transactionRepository.delete(userId, transaction.getId());
 
-        Optional<Transaction> deletedTransaction = transactionRepository.findById(userEmail, transaction.getId());
+        Optional<Transaction> deletedTransaction = transactionRepository.findById(userId, transaction.getId());
         assertThat(deletedTransaction).isEmpty();
     }
 }

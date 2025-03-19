@@ -70,23 +70,23 @@ class TransactionConsoleHandlerTest {
     @Test
     void showTransactions_ShouldPrintTransactions() {
         List<Transaction> transactions = List.of(
-                new Transaction(1, user.getEmail(), 1000, TransactionType.INCOME, Category.SALARY, LocalDate.now(), "Зарплата"),
-                new Transaction(2, user.getEmail(), 500, TransactionType.EXPENSE, Category.FOOD, LocalDate.now(), "Обед")
+                new Transaction(1, user.getId(), 1000, TransactionType.INCOME, Category.SALARY, LocalDate.now(), "Зарплата"),
+                new Transaction(2, user.getId(), 500, TransactionType.EXPENSE, Category.FOOD, LocalDate.now(), "Обед")
         );
 
-        when(transactionService.getTransactions(user.getEmail())).thenReturn(transactions);
+        when(transactionService.getTransactions(user.getId())).thenReturn(transactions);
 
         consoleHandler.showTransactions(user);
 
-        verify(transactionService, times(1)).getTransactions(user.getEmail());
+        verify(transactionService, times(1)).getTransactions(user.getId());
     }
 
     @Test
     void showBalance_ShouldPrintCorrectBalance() {
-        when(transactionService.calculateBalance(user.getEmail())).thenReturn(1500.0);
+        when(transactionService.calculateBalance(user.getId())).thenReturn(1500.0);
 
         consoleHandler.showBalance(user);
 
-        verify(transactionService, times(1)).calculateBalance(user.getEmail());
+        verify(transactionService, times(1)).calculateBalance(user.getId());
     }
 }

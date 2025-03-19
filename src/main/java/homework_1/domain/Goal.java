@@ -5,7 +5,7 @@ package homework_1.domain;
  */
 public class Goal {
     private long id;
-    private final String userEmail;
+    private final long userId;
     private String name;
     private final double targetAmount;
     private double currentAmount;
@@ -13,13 +13,13 @@ public class Goal {
     /**
      * Конструктор создания цели.
      *
-     * @param userEmail    почта пользователя
+     * @param userId       Id пользователя
      * @param name         название цели
      * @param targetAmount сумма, которую нужно накопить
      */
-    public Goal(long id, String userEmail, String name, double targetAmount, double currentAmount) {
+    public Goal(long id, long userId, String name, double targetAmount, double currentAmount) {
         this.id = id;
-        this.userEmail = userEmail;
+        this.userId = userId;
         this.name = name;
         this.targetAmount = targetAmount;
         this.currentAmount = currentAmount;
@@ -28,12 +28,12 @@ public class Goal {
     /**
      * Конструктор создания цели.
      *
-     * @param userEmail    почта пользователя
+     * @param userId       Id пользователя
      * @param name         название цели
      * @param targetAmount сумма, которую нужно накопить
      */
-    public Goal(String userEmail, String name, double targetAmount) {
-        this.userEmail = userEmail;
+    public Goal(long userId, String name, double targetAmount) {
+        this.userId = userId;
         this.name = name;
         this.targetAmount = targetAmount;
         this.currentAmount = 0;
@@ -47,8 +47,8 @@ public class Goal {
         this.id = id;
     }
 
-    public String getUserEmail() {
-        return userEmail;
+    public long getUserId() {
+        return userId;
     }
 
     public String getName() {

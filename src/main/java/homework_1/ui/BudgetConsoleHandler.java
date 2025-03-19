@@ -29,7 +29,7 @@ public class BudgetConsoleHandler {
         System.out.println("Введите новый месячный бюджет:");
         try {
             double budget = Double.parseDouble(scanner.nextLine());
-            budgetService.setUserBudget(user.getEmail(), budget);
+            budgetService.setUserBudget(user.getId(), budget);
             System.out.println("Бюджет установлен: " + budget);
         } catch (NumberFormatException e) {
             System.out.println("Ошибка: Некорректный ввод числа.");
@@ -49,7 +49,7 @@ public class BudgetConsoleHandler {
             return;
         }
 
-        boolean exceeded = budgetService.isBudgetExceeded(user.getEmail());
+        boolean exceeded = budgetService.isBudgetExceeded(user.getId());
 
         if (exceeded) {
             System.out.println("Внимание! Ваши расходы превысили установленный бюджет.");

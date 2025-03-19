@@ -25,19 +25,19 @@ class AnalyticsConsoleHandlerTest {
 
     @Test
     void showFinancialReport_ShouldPrintReport_WhenUserLoggedIn() {
-        when(analyticsService.generateFinancialReport(currentUser.getEmail()))
+        when(analyticsService.generateFinancialReport(currentUser.getId()))
                 .thenReturn("Финансовый отчет: Доход 1000, Расход 500");
 
         analyticsConsoleHandler.showFinancialReport(currentUser);
 
-        verify(analyticsService, times(1)).generateFinancialReport(currentUser.getEmail());
+        verify(analyticsService, times(1)).generateFinancialReport(currentUser.getId());
     }
 
     @Test
     void showFinancialReport_ShouldShowError_WhenUserNotLoggedIn() {
         analyticsConsoleHandler.showFinancialReport(null);
 
-        verify(analyticsService, never()).generateFinancialReport(anyString());
+        verify(analyticsService, never()).generateFinancialReport(anyLong());
     }
 
     @Test
@@ -47,39 +47,39 @@ class AnalyticsConsoleHandlerTest {
 
         analyticsConsoleHandler = new AnalyticsConsoleHandler(analyticsService, new Scanner(System.in));
 
-        when(analyticsService.getTotalIncome(currentUser.getEmail(), "2024-01-01", "2024-12-31"))
+        when(analyticsService.getTotalIncome(currentUser.getId(), "2024-01-01", "2024-12-31"))
                 .thenReturn(1000.0);
-        when(analyticsService.getTotalExpenses(currentUser.getEmail(), "2024-01-01", "2024-12-31"))
+        when(analyticsService.getTotalExpenses(currentUser.getId(), "2024-01-01", "2024-12-31"))
                 .thenReturn(500.0);
 
         analyticsConsoleHandler.showIncomeAndExpensesForPeriod(currentUser);
 
-        verify(analyticsService, times(1)).getTotalIncome(currentUser.getEmail(), "2024-01-01", "2024-12-31");
-        verify(analyticsService, times(1)).getTotalExpenses(currentUser.getEmail(), "2024-01-01", "2024-12-31");
+        verify(analyticsService, times(1)).getTotalIncome(currentUser.getId(), "2024-01-01", "2024-12-31");
+        verify(analyticsService, times(1)).getTotalExpenses(currentUser.getId(), "2024-01-01", "2024-12-31");
     }
 
     @Test
     void showIncomeAndExpensesForPeriod_ShouldShowError_WhenUserNotLoggedIn() {
         analyticsConsoleHandler.showIncomeAndExpensesForPeriod(null);
 
-        verify(analyticsService, never()).getTotalIncome(anyString(), anyString(), anyString());
-        verify(analyticsService, never()).getTotalExpenses(anyString(), anyString(), anyString());
+        verify(analyticsService, never()).getTotalIncome(anyLong(), anyString(), anyString());
+        verify(analyticsService, never()).getTotalExpenses(anyLong(), anyString(), anyString());
     }
 
     @Test
     void showCategoryAnalysis_ShouldPrintReport_WhenUserLoggedIn() {
-        when(analyticsService.analyzeExpensesByCategory(currentUser.getEmail()))
+        when(analyticsService.analyzeExpensesByCategory(currentUser.getId()))
                 .thenReturn("Расходы по категориям: Еда - 500, Транспорт - 200");
 
         analyticsConsoleHandler.showCategoryAnalysis(currentUser);
 
-        verify(analyticsService, times(1)).analyzeExpensesByCategory(currentUser.getEmail());
+        verify(analyticsService, times(1)).analyzeExpensesByCategory(currentUser.getId());
     }
 
     @Test
     void showCategoryAnalysis_ShouldShowError_WhenUserNotLoggedIn() {
         analyticsConsoleHandler.showCategoryAnalysis(null);
 
-        verify(analyticsService, never()).analyzeExpensesByCategory(anyString());
+        verify(analyticsService, never()).analyzeExpensesByCategory(anyLong());
     }
 }

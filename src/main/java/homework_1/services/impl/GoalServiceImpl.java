@@ -21,26 +21,26 @@ public class GoalServiceImpl implements GoalService {
     /**
      * Создаёт новую цель.
      *
-     * @param userEmail    почта пользователя
+     * @param userId       Id пользователя
      * @param name         название цели
      * @param targetAmount сумма, которую нужно накопить
      */
-    public void createGoal(String userEmail, String name, double targetAmount) {
+    public void createGoal(long userId, String name, double targetAmount) {
         if (targetAmount <= 0) {
             throw new IllegalArgumentException("Цель должна быть положительной.");
         }
-        Goal goal = new Goal(userEmail, name, targetAmount);
+        Goal goal = new Goal(userId, name, targetAmount);
         goalRepository.save(goal);
     }
 
     /**
      * Возвращает все цели пользователя.
      *
-     * @param userEmail почта пользователя
+     * @param userId Id пользователя
      * @return список целей
      */
-    public List<Goal> getUserGoals(String userEmail) throws SQLException {
-        return goalRepository.findByUserEmail(userEmail);
+    public List<Goal> getUserGoals(long userId) throws SQLException {
+        return goalRepository.findByUserId(userId);
     }
 
     /**
@@ -50,15 +50,15 @@ public class GoalServiceImpl implements GoalService {
      * @param amount   сумма для пополнения
      */
     public void addToGoal(String goalName, double amount) {
-        Goal goal = goalRepository.findByName(goalName)
-                .orElseThrow(() -> new IllegalArgumentException("Цель не найдена."));
-
-        if (amount <= 0) {
-            throw new IllegalArgumentException("Сумма должна быть положительной.");
-        }
-
-        goal.addToGoal(amount);
-        goalRepository.update(goal);
+        goalRepository.findByName(goalName)
+                .ifPresentOrElse(goal -> {
+                    if (amount > 0) {
+                        goal.addToGoal(amount);
+                        goalRepository.update(goal);
+                    } else {
+                        System.out.println("⚠️ Ошибка: сумма должна быть положительной.");
+                    }
+                }, () -> System.out.println("⚠️ Ошибка: цель не найдена."));
     }
 
     /**

@@ -44,33 +44,33 @@ class TransactionServiceImplTest {
         user = new User("Иван Иванов", userEmail, "password123", false);
 
         transactionIncome = new Transaction(1,
-                userEmail, 1000.0, TransactionType.INCOME,
+                user.getId(), 1000.0, TransactionType.INCOME,
                 Category.SALARY, LocalDate.now(), "Зарплата");
 
         transactionExpense = new Transaction(2,
-                userEmail, 200.0, TransactionType.EXPENSE,
+                user.getId(), 200.0, TransactionType.EXPENSE,
                 Category.FOOD, LocalDate.now(), "Покупка продуктов");
     }
 
     @Test
     void createTransaction_ShouldSaveTransaction_WhenBudgetNotExceeded() {
-        when(budgetService.getUserBudget(userEmail)).thenReturn(Optional.of(new Budget(userEmail, 500.0)));
+        when(budgetService.getUserBudget(user.getId())).thenReturn(Optional.of(new Budget(user.getId(), 500.0)));
 
-        when(transactionRepository.findByUserEmailAndType(userEmail, TransactionType.EXPENSE)).thenReturn(List.of());
+        when(transactionRepository.findByUserIdAndType(user.getId(), TransactionType.EXPENSE)).thenReturn(List.of());
 
         transactionServiceImpl.createTransaction(transactionExpense);
 
         verify(transactionRepository, times(1)).save(transactionExpense);
 
-        verify(notificationService, never()).sendNotification(anyString(), anyString());
+        verify(notificationService, never()).sendNotification(anyLong(), anyString());
     }
 
     @Test
     void getTransactions_ShouldReturnUserTransactions() {
-        when(transactionRepository.findByUserEmail(userEmail))
+        when(transactionRepository.findByUserId(user.getId()))
                 .thenReturn(List.of(transactionIncome, transactionExpense));
 
-        List<Transaction> transactions = transactionServiceImpl.getTransactions(userEmail);
+        List<Transaction> transactions = transactionServiceImpl.getTransactions(user.getId());
 
         assertThat(transactions).hasSize(2);
         assertThat(transactions).containsExactly(transactionIncome, transactionExpense);
@@ -85,36 +85,36 @@ class TransactionServiceImplTest {
     @Test
     void deleteTransaction_ShouldCallRepositoryDelete() {
         long transactionId = transactionExpense.getId();
-        transactionServiceImpl.deleteTransaction(userEmail, transactionId);
-        verify(transactionRepository).delete(userEmail, transactionId);
+        transactionServiceImpl.deleteTransaction(user.getId(), transactionId);
+        verify(transactionRepository).delete(user.getId(), transactionId);
     }
 
     @Test
     void calculateBalance_ShouldReturnCorrectBalance() {
-        when(transactionRepository.findByUserEmail(userEmail))
+        when(transactionRepository.findByUserId(user.getId()))
                 .thenReturn(List.of(transactionIncome, transactionExpense));
 
-        double balance = transactionServiceImpl.calculateBalance(userEmail);
+        double balance = transactionServiceImpl.calculateBalance(user.getId());
 
         assertThat(balance).isEqualTo(800.0);
     }
 
     @Test
     void getTransactionsByDate_ShouldReturnFilteredTransactions() {
-        when(transactionRepository.findByUserEmailAndDate(userEmail, LocalDate.now()))
+        when(transactionRepository.findByUserIdAndDate(user.getId(), LocalDate.now()))
                 .thenReturn(List.of(transactionIncome));
 
-        List<Transaction> transactions = transactionServiceImpl.getTransactionsByDate(userEmail, LocalDate.now());
+        List<Transaction> transactions = transactionServiceImpl.getTransactionsByDate(user.getId(), LocalDate.now());
 
         assertThat(transactions).containsExactly(transactionIncome);
     }
 
     @Test
     void getTransactionsByCategory_ShouldReturnFilteredTransactions() {
-        when(transactionRepository.findByUserEmailAndCategory(userEmail, Category.FOOD))
+        when(transactionRepository.findByUserIdAndCategory(user.getId(), Category.FOOD))
                 .thenReturn(List.of(transactionExpense));
 
-        List<Transaction> transactions = transactionServiceImpl.getTransactionsByCategory(userEmail, Category.FOOD);
+        List<Transaction> transactions = transactionServiceImpl.getTransactionsByCategory(user.getId(), Category.FOOD);
 
         assertThat(transactions).containsExactly(transactionExpense);
     }

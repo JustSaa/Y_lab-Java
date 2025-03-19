@@ -37,10 +37,10 @@ public interface GoalRepository {
     /**
      * Возвращает список всех целей пользователя.
      *
-     * @param email почта пользователя
+     * @param userId Id пользователя
      * @return список целей пользователя
      */
-    List<Goal> findByUserEmail(String email) throws SQLException;
+    List<Goal> findByUserId(long userId) throws SQLException;
 
     /**
      * Обновляет данные существующей цели.

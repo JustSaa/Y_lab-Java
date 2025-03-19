@@ -35,13 +35,13 @@ class GoalConsoleHandlerTest {
 
         goalConsoleHandler.createGoal(testUser);
 
-        ArgumentCaptor<String> emailCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<Long> idCaptor = ArgumentCaptor.forClass(Long.class);
         ArgumentCaptor<String> nameCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<Double> amountCaptor = ArgumentCaptor.forClass(Double.class);
 
-        verify(goalServiceImpl, times(1)).createGoal(emailCaptor.capture(), nameCaptor.capture(), amountCaptor.capture());
+        verify(goalServiceImpl, times(1)).createGoal(idCaptor.capture(), nameCaptor.capture(), amountCaptor.capture());
 
-        assertThat(emailCaptor.getValue()).isEqualTo("test@example.com");
+        assertThat(idCaptor.getValue()).isEqualTo(0);
         assertThat(nameCaptor.getValue()).isEqualTo("Машина");
         assertThat(amountCaptor.getValue()).isEqualTo(100000);
     }
@@ -49,14 +49,14 @@ class GoalConsoleHandlerTest {
     @Test
     void showGoals_ShouldDisplayGoals_WhenGoalsExist() throws SQLException {
         List<Goal> goals = List.of(
-                new Goal("test@example.com", "Машина", 100000),
-                new Goal("test@example.com", "Отпуск", 50000)
+                new Goal(testUser.getId(), "Машина", 100000),
+                new Goal(testUser.getId(), "Отпуск", 50000)
         );
-        when(goalServiceImpl.getUserGoals(testUser.getEmail())).thenReturn(goals);
+        when(goalServiceImpl.getUserGoals(testUser.getId())).thenReturn(goals);
 
         goalConsoleHandler.showGoals(testUser);
 
-        verify(goalServiceImpl, times(1)).getUserGoals(testUser.getEmail());
+        verify(goalServiceImpl, times(1)).getUserGoals(testUser.getId());
     }
 
     @Test

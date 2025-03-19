@@ -5,22 +5,22 @@ package homework_1.domain;
  */
 public class Budget {
     private long id;
-    private final String userEmail;
+    private final long userId;
     private final double limit;
 
-    public Budget(String userEmail, double limit) {
-        this.userEmail = userEmail;
+    public Budget(long userId, double limit) {
+        this.userId = userId;
         this.limit = limit;
     }
 
-    public Budget(long id, String userEmail, double limit) {
+    public Budget(long id, long userId, double limit) {
         this.id = id;
-        this.userEmail = userEmail;
+        this.userId = userId;
         this.limit = limit;
     }
 
-    public String getUserEmail() {
-        return userEmail;
+    public long getUserId() {
+        return userId;
     }
 
     public double getLimit() {

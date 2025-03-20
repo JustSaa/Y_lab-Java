@@ -3,16 +3,18 @@ package homework_1.ui;
 import homework_1.domain.Goal;
 import homework_1.domain.User;
 import homework_1.services.GoalService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Scanner;
-import java.util.UUID;
 
 /**
  * Обработчик команд для работы с целями.
  */
 public class GoalConsoleHandler {
+    private static final Logger logger = LoggerFactory.getLogger(GoalConsoleHandler.class);
     private final GoalService goalService;
     private final Scanner scanner;
 
@@ -33,6 +35,7 @@ public class GoalConsoleHandler {
 
         goalService.createGoal(user.getId(), name, amount);
         System.out.println("Цель добавлена.");
+        logger.info("Пользователь {} создал новую цель: {} на сумму {}", user.getEmail(), name, amount);
     }
 
     /**

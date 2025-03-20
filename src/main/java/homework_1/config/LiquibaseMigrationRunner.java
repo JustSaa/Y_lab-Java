@@ -5,6 +5,8 @@ import liquibase.database.Database;
 import liquibase.database.DatabaseFactory;
 import liquibase.database.jvm.JdbcConnection;
 import liquibase.resource.ClassLoaderResourceAccessor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -15,6 +17,7 @@ import java.util.Properties;
  * Класс для запуска миграции Liquibase
  */
 public class LiquibaseMigrationRunner {
+    private static final Logger logger = LoggerFactory.getLogger(LiquibaseMigrationRunner.class);
 
     /**
      * Запускает миграции Liquibase для основной базы (использует config.properties).
@@ -41,7 +44,7 @@ public class LiquibaseMigrationRunner {
 
                 Liquibase liquibase = new Liquibase(changelogFile, new ClassLoaderResourceAccessor(), database);
                 liquibase.update();
-                System.out.println("Liquibase миграции успешно выполнены!");
+                logger.info("Liquibase миграции успешно выполнены!");
 
             } catch (Exception e) {
                 throw new RuntimeException("Ошибка выполнения миграций Liquibase", e);
@@ -67,7 +70,7 @@ public class LiquibaseMigrationRunner {
             );
 
             liquibase.update();
-            System.out.println("Liquibase миграции успешно применены для " + url);
+            logger.info("Liquibase миграции успешно применены для {}", url);
         } catch (Exception e) {
             throw new RuntimeException("Ошибка выполнения миграций Liquibase", e);
         }

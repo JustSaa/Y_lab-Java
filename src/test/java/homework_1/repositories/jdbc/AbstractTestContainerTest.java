@@ -1,6 +1,7 @@
 package homework_1.repositories.jdbc;
 
 import homework_1.config.LiquibaseMigrationRunner;
+import homework_1.utils.TestDatabaseUtil;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.testcontainers.containers.PostgreSQLContainer;
@@ -30,7 +31,7 @@ public abstract class AbstractTestContainerTest {
         String password = POSTGRESQL_CONTAINER.getPassword();
 
         connection = DriverManager.getConnection(url, username, password);
-        LiquibaseMigrationRunner.runMigrations(url, username, password);
+        TestDatabaseUtil.runTestMigrations(url, username, password);
     }
 
     @AfterAll

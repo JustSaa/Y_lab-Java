@@ -1,4 +1,4 @@
-package homework_1.config;
+package homework_1.utils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

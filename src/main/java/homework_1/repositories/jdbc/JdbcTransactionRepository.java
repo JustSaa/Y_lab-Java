@@ -4,6 +4,8 @@ import homework_1.domain.Category;
 import homework_1.domain.Transaction;
 import homework_1.domain.TransactionType;
 import homework_1.repositories.TransactionRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.*;
 import java.sql.Date;
@@ -16,6 +18,34 @@ import java.util.*;
  * с использованием JDBC и базы данных PostgreSQL.
  */
 public class JdbcTransactionRepository implements TransactionRepository {
+    private static final Logger logger = LoggerFactory.getLogger(JdbcTransactionRepository.class);
+    private static final String SAVE = """
+            INSERT INTO finance.transactions (user_id, amount, type, category, date, description)
+            VALUES (?, ?, ?, ?, ?, ?)
+            RETURNING id
+            """;
+    private static final String FIND_BY_ID = """
+            SELECT id, user_id, amount, type, category, date, description
+            FROM finance.transactions WHERE user_id = ? AND id = ?
+            """;
+    private static final String FIND_BY_USERID = "SELECT * FROM finance.transactions WHERE user_id = ?";
+    private static final String UPDATE = """
+            UPDATE finance.transactions
+            SET amount = ?, type = ?, category = ?, date = ?, description = ?
+            WHERE id = ?
+            """;
+    private static final String DELETE = "DELETE FROM finance.transactions WHERE user_id = ? AND id = ?";
+    private static final String FIND_BY_USERID_AND_DATE = """
+                SELECT * FROM finance.transactions WHERE user_id = ? AND date = ?
+            """;
+    private static final String FIND_BY_USERID_AND_CATEGORY = """
+            SELECT * FROM finance.transactions
+            WHERE user_id = ? AND category = ?
+            """;
+    private static final String FIND_BY_USERID_AND_TYPE = """
+            SELECT * FROM finance.transactions
+            WHERE user_id = ? AND type = ?
+            """;
 
     private final Connection connection;
 
@@ -36,28 +66,39 @@ public class JdbcTransactionRepository implements TransactionRepository {
      */
     @Override
     public void save(Transaction transaction) {
-        String sql = """
-            INSERT INTO finance.transactions (user_id, amount, type, category, date, description)
-            VALUES (?, ?, ?, ?, ?, ?)
-            RETURNING id
-            """;
+        try {
+            connection.setAutoCommit(false);
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setLong(1, transaction.getUserId());
-            stmt.setDouble(2, transaction.getAmount());
-            stmt.setString(3, transaction.getType().name());
-            stmt.setString(4, transaction.getCategory().name());
-            stmt.setDate(5, Date.valueOf(transaction.getDate()));
-            stmt.setString(6, transaction.getDescription());
+            try (PreparedStatement stmt = connection.prepareStatement(SAVE)) {
+                stmt.setLong(1, transaction.getUserId());
+                stmt.setDouble(2, transaction.getAmount());
+                stmt.setString(3, transaction.getType().name());
+                stmt.setString(4, transaction.getCategory().name());
+                stmt.setDate(5, Date.valueOf(transaction.getDate()));
+                stmt.setString(6, transaction.getDescription());
 
-            // Выполняем запрос и получаем сгенерированный id
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                transaction.setId(rs.getLong("id")); // Устанавливаем id после сохранения
+                try (ResultSet rs = stmt.executeQuery()) {
+                    if (rs.next()) {
+                        transaction.setId(rs.getLong("id"));
+                    }
+                }
             }
 
+            connection.commit();
         } catch (SQLException e) {
-            throw new RuntimeException("Ошибка сохранения транзакции", e);
+            try {
+                connection.rollback();
+                logger.error("Ошибка сохранения транзакции. Транзакция откатилась.", e);
+                throw new RuntimeException("Ошибка сохранения транзакции", e);
+            } catch (SQLException rollbackEx) {
+                throw new RuntimeException("Ошибка при откате транзакции", rollbackEx);
+            }
+        } finally {
+            try {
+                connection.setAutoCommit(true);
+            } catch (SQLException e) {
+                logger.error("Ошибка при включении autoCommit", e);
+            }
         }
     }
 
@@ -71,11 +112,7 @@ public class JdbcTransactionRepository implements TransactionRepository {
      */
     @Override
     public Optional<Transaction> findById(long userId, long transactionId) {
-        String sql = """
-                SELECT id, user_id, amount, type, category, date, description
-                FROM finance.transactions WHERE user_id = ? AND id = ?
-                """;
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (PreparedStatement stmt = connection.prepareStatement(FIND_BY_ID)) {
             stmt.setLong(1, userId);
             stmt.setLong(2, transactionId);
 
@@ -98,8 +135,7 @@ public class JdbcTransactionRepository implements TransactionRepository {
      */
     @Override
     public List<Transaction> findByUserId(long userId) {
-        String sql = "SELECT * FROM finance.transactions WHERE user_id = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (PreparedStatement stmt = connection.prepareStatement(FIND_BY_USERID)) {
             stmt.setLong(1, userId);
             ResultSet rs = stmt.executeQuery();
 
@@ -121,22 +157,35 @@ public class JdbcTransactionRepository implements TransactionRepository {
      */
     @Override
     public void update(Transaction transaction) {
-        String sql = """
-                UPDATE finance.transactions
-                SET amount = ?, type = ?, category = ?, date = ?, description = ?
-                WHERE id = ?
-                """;
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setDouble(1, transaction.getAmount());
-            stmt.setString(2, transaction.getType().name());
-            stmt.setString(3, transaction.getCategory().name());
-            stmt.setDate(4, Date.valueOf(transaction.getDate()));
-            stmt.setString(5, transaction.getDescription());
-            stmt.setLong(6, transaction.getId());
+        try {
+            connection.setAutoCommit(false);
 
-            stmt.executeUpdate();
+            try (PreparedStatement stmt = connection.prepareStatement(UPDATE)) {
+                stmt.setDouble(1, transaction.getAmount());
+                stmt.setString(2, transaction.getType().name());
+                stmt.setString(3, transaction.getCategory().name());
+                stmt.setDate(4, Date.valueOf(transaction.getDate()));
+                stmt.setString(5, transaction.getDescription());
+                stmt.setLong(6, transaction.getId());
+
+                stmt.executeUpdate();
+            }
+
+            connection.commit();
         } catch (SQLException e) {
-            throw new RuntimeException("Ошибка обновления транзакции", e);
+            try {
+                connection.rollback();
+                logger.error("Ошибка обновления транзакции. Транзакция откатилась.", e);
+                throw new RuntimeException("Ошибка обновления транзакции", e);
+            } catch (SQLException rollbackEx) {
+                throw new RuntimeException("Ошибка при откате транзакции", rollbackEx);
+            }
+        } finally {
+            try {
+                connection.setAutoCommit(true);
+            } catch (SQLException e) {
+                logger.error("Ошибка при включении autoCommit", e);
+            }
         }
     }
 
@@ -149,13 +198,30 @@ public class JdbcTransactionRepository implements TransactionRepository {
      */
     @Override
     public void delete(long userId, long transactionId) {
-        String sql = "DELETE FROM finance.transactions WHERE user_id = ? AND id = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setLong(1, userId);
-            stmt.setLong(2, transactionId);
-            stmt.executeUpdate();
+        try {
+            connection.setAutoCommit(false);
+
+            try (PreparedStatement stmt = connection.prepareStatement(DELETE)) {
+                stmt.setLong(1, userId);
+                stmt.setLong(2, transactionId);
+                stmt.executeUpdate();
+            }
+
+            connection.commit();
         } catch (SQLException e) {
-            throw new RuntimeException("Ошибка удаления транзакции", e);
+            try {
+                connection.rollback();
+                logger.error("Ошибка удаления транзакции. Транзакция откатилась.", e);
+                throw new RuntimeException("Ошибка удаления транзакции", e);
+            } catch (SQLException rollbackEx) {
+                throw new RuntimeException("Ошибка при откате транзакции", rollbackEx);
+            }
+        } finally {
+            try {
+                connection.setAutoCommit(true);
+            } catch (SQLException e) {
+                logger.error("Ошибка при включении autoCommit", e);
+            }
         }
     }
 
@@ -169,10 +235,7 @@ public class JdbcTransactionRepository implements TransactionRepository {
      */
     @Override
     public List<Transaction> findByUserIdAndDate(long userId, LocalDate date) {
-        String sql = """
-                    SELECT * FROM finance.transactions WHERE user_id = ? AND date = ?
-                """;
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (PreparedStatement stmt = connection.prepareStatement(FIND_BY_USERID_AND_DATE)) {
             stmt.setLong(1, userId);
             stmt.setDate(2, Date.valueOf(date));
             ResultSet rs = stmt.executeQuery();
@@ -197,11 +260,7 @@ public class JdbcTransactionRepository implements TransactionRepository {
      */
     @Override
     public List<Transaction> findByUserIdAndCategory(long userId, Category category) {
-        String sql = """
-                SELECT * FROM finance.transactions
-                WHERE user_id = ? AND category = ?
-                """;
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (PreparedStatement stmt = connection.prepareStatement(FIND_BY_USERID_AND_CATEGORY)) {
             stmt.setLong(1, userId);
             stmt.setString(2, category.name());
             ResultSet rs = stmt.executeQuery();
@@ -226,11 +285,7 @@ public class JdbcTransactionRepository implements TransactionRepository {
      */
     @Override
     public List<Transaction> findByUserIdAndType(long userId, TransactionType type) {
-        String sql = """
-                SELECT * FROM finance.transactions
-                WHERE user_id = ? AND type = ?
-                """;
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (PreparedStatement stmt = connection.prepareStatement(FIND_BY_USERID_AND_TYPE)) {
             stmt.setLong(1, userId);
             stmt.setString(2, type.name());
             ResultSet rs = stmt.executeQuery();

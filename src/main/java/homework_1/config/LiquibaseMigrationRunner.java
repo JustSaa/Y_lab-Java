@@ -54,25 +54,4 @@ public class LiquibaseMigrationRunner {
             throw new RuntimeException("Ошибка загрузки config.properties", e);
         }
     }
-
-    /**
-     * Запускает миграции Liquibase для указанной базы (используется в Testcontainers).
-     */
-    public static void runMigrations(String url, String user, String password) {
-        try (Connection connection = DriverManager.getConnection(url, user, password)) {
-            Database database = DatabaseFactory.getInstance()
-                    .findCorrectDatabaseImplementation(new JdbcConnection(connection));
-
-            Liquibase liquibase = new Liquibase(
-                    "db/changelog/db.changelog-master.xml",
-                    new ClassLoaderResourceAccessor(),
-                    database
-            );
-
-            liquibase.update();
-            logger.info("Liquibase миграции успешно применены для {}", url);
-        } catch (Exception e) {
-            throw new RuntimeException("Ошибка выполнения миграций Liquibase", e);
-        }
-    }
 }

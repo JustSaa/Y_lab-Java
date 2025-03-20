@@ -2,6 +2,8 @@ package homework_1.repositories.jdbc;
 
 import homework_1.domain.User;
 import homework_1.repositories.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.*;
 import java.util.*;
@@ -11,6 +13,23 @@ import java.util.*;
  * с использованием JDBC и базы данных PostgreSQL.
  */
 public class JdbcUserRepository implements UserRepository {
+    private static final Logger logger = LoggerFactory.getLogger(JdbcUserRepository.class);
+
+    private static final String SAVE = """
+            INSERT INTO finance.users (name, email, password, is_admin, is_blocked)
+            VALUES (?, ?, ?, ?, ?)
+            RETURNING id
+            """;
+    private static final String FIND_BY_EMAIL = "SELECT * FROM finance.users WHERE email = ?";
+    private static final String FIND_BY_ALL = "SELECT * FROM finance.users";
+    private static final String DELETE = "DELETE FROM finance.users WHERE email = ?";
+    private static final String UPDATE = """
+            UPDATE finance.users
+            SET name = ?, password = ?, is_admin = ?, is_blocked = ?
+            WHERE email = ?
+            """;
+    private static final String BLOCK_USER = "UPDATE finance.users SET is_blocked = TRUE WHERE email = ?";
+
 
     private final Connection connection;
 
@@ -31,29 +50,41 @@ public class JdbcUserRepository implements UserRepository {
      */
     @Override
     public void save(User user) {
-        String sql = """
-            INSERT INTO finance.users (name, email, password, is_admin, is_blocked)
-            VALUES (?, ?, ?, ?, ?)
-            RETURNING id
-            """;
+        try {
+            connection.setAutoCommit(false);
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            stmt.setString(1, user.getName());
-            stmt.setString(2, user.getEmail());
-            stmt.setString(3, user.getPassword());
-            stmt.setBoolean(4, user.isAdmin());
-            stmt.setBoolean(5, user.isBlocked());
+            try (PreparedStatement stmt = connection.prepareStatement(SAVE, Statement.RETURN_GENERATED_KEYS)) {
+                stmt.setString(1, user.getName());
+                stmt.setString(2, user.getEmail());
+                stmt.setString(3, user.getPassword());
+                stmt.setBoolean(4, user.isAdmin());
+                stmt.setBoolean(5, user.isBlocked());
 
-            stmt.executeUpdate();
+                stmt.executeUpdate();
 
-            // Получаем сгенерированный ID
-            try (ResultSet rs = stmt.getGeneratedKeys()) {
-                if (rs.next()) {
-                    user.setId(rs.getLong("id")); // Устанавливаем ID после сохранения
+                // Получаем сгенерированный ID
+                try (ResultSet rs = stmt.getGeneratedKeys()) {
+                    if (rs.next()) {
+                        user.setId(rs.getLong("id"));
+                    }
                 }
             }
+
+            connection.commit();
         } catch (SQLException e) {
-            throw new RuntimeException("Ошибка сохранения пользователя", e);
+            try {
+                connection.rollback();
+                logger.error("Ошибка сохранения пользователя. Транзакция откатилась.", e);
+                throw new RuntimeException("Ошибка сохранения пользователя", e);
+            } catch (SQLException rollbackEx) {
+                throw new RuntimeException("Ошибка при откате транзакции", rollbackEx);
+            }
+        } finally {
+            try {
+                connection.setAutoCommit(true);
+            } catch (SQLException e) {
+                logger.error("Ошибка при включении autoCommit", e);
+            }
         }
     }
 
@@ -66,8 +97,7 @@ public class JdbcUserRepository implements UserRepository {
      */
     @Override
     public Optional<User> findByEmail(String email) {
-        String sql = "SELECT * FROM finance.users WHERE email = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (PreparedStatement stmt = connection.prepareStatement(FIND_BY_EMAIL)) {
             stmt.setString(1, email);
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
@@ -87,8 +117,7 @@ public class JdbcUserRepository implements UserRepository {
      */
     @Override
     public List<User> findAll() {
-        String sql = "SELECT * FROM finance.users";
-        try (PreparedStatement stmt = connection.prepareStatement(sql);
+        try (PreparedStatement stmt = connection.prepareStatement(FIND_BY_ALL);
              ResultSet rs = stmt.executeQuery()) {
 
             List<User> users = new ArrayList<>();
@@ -109,12 +138,29 @@ public class JdbcUserRepository implements UserRepository {
      */
     @Override
     public void delete(String email) {
-        String sql = "DELETE FROM finance.users WHERE email = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setString(1, email);
-            stmt.executeUpdate();
+        try {
+            connection.setAutoCommit(false);
+
+            try (PreparedStatement stmt = connection.prepareStatement(DELETE)) {
+                stmt.setString(1, email);
+                stmt.executeUpdate();
+            }
+
+            connection.commit();
         } catch (SQLException e) {
-            throw new RuntimeException("Ошибка удаления пользователя", e);
+            try {
+                connection.rollback();
+                logger.error("Ошибка удаления пользователя. Транзакция откатилась.", e);
+                throw new RuntimeException("Ошибка удаления пользователя", e);
+            } catch (SQLException rollbackEx) {
+                throw new RuntimeException("Ошибка при откате транзакции", rollbackEx);
+            }
+        } finally {
+            try {
+                connection.setAutoCommit(true);
+            } catch (SQLException e) {
+                logger.error("Ошибка при включении autoCommit", e);
+            }
         }
     }
 
@@ -126,25 +172,37 @@ public class JdbcUserRepository implements UserRepository {
      */
     @Override
     public void update(User user) {
-        String sql = """
-                UPDATE finance.users
-                SET name = ?, password = ?, is_admin = ?, is_blocked = ?
-                WHERE email = ?
-                """;
+        try {
+            connection.setAutoCommit(false);
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setString(1, user.getName());
-            stmt.setString(2, user.getPassword());
-            stmt.setBoolean(3, user.isAdmin());
-            stmt.setBoolean(4, user.isBlocked());
-            stmt.setString(5, user.getEmail());
+            try (PreparedStatement stmt = connection.prepareStatement(UPDATE)) {
+                stmt.setString(1, user.getName());
+                stmt.setString(2, user.getPassword());
+                stmt.setBoolean(3, user.isAdmin());
+                stmt.setBoolean(4, user.isBlocked());
+                stmt.setString(5, user.getEmail());
 
-            int rowsUpdated = stmt.executeUpdate();
-            if (rowsUpdated == 0) {
-                throw new RuntimeException("Пользователь с email " + user.getEmail() + " не найден");
+                int rowsUpdated = stmt.executeUpdate();
+                if (rowsUpdated == 0) {
+                    throw new RuntimeException("Пользователь с email " + user.getEmail() + " не найден");
+                }
             }
+
+            connection.commit();
         } catch (SQLException e) {
-            throw new RuntimeException("Ошибка обновления пользователя", e);
+            try {
+                connection.rollback();
+                logger.error("Ошибка обновления пользователя. Транзакция откатилась.", e);
+                throw new RuntimeException("Ошибка обновления пользователя", e);
+            } catch (SQLException rollbackEx) {
+                throw new RuntimeException("Ошибка при откате транзакции", rollbackEx);
+            }
+        } finally {
+            try {
+                connection.setAutoCommit(true);
+            } catch (SQLException e) {
+                logger.error("Ошибка при включении autoCommit", e);
+            }
         }
     }
 
@@ -156,12 +214,29 @@ public class JdbcUserRepository implements UserRepository {
      */
     @Override
     public void blockUser(String email) {
-        String sql = "UPDATE finance.users SET is_blocked = TRUE WHERE email = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setString(1, email);
-            stmt.executeUpdate();
+        try {
+            connection.setAutoCommit(false);
+
+            try (PreparedStatement stmt = connection.prepareStatement(BLOCK_USER)) {
+                stmt.setString(1, email);
+                stmt.executeUpdate();
+            }
+
+            connection.commit();
         } catch (SQLException e) {
-            throw new RuntimeException("Ошибка блокировки пользователя", e);
+            try {
+                connection.rollback();
+                logger.error("Ошибка блокировки пользователя. Транзакция откатилась.", e);
+                throw new RuntimeException("Ошибка блокировки пользователя", e);
+            } catch (SQLException rollbackEx) {
+                throw new RuntimeException("Ошибка при откате транзакции", rollbackEx);
+            }
+        } finally {
+            try {
+                connection.setAutoCommit(true);
+            } catch (SQLException e) {
+                logger.error("Ошибка при включении autoCommit", e);
+            }
         }
     }
 

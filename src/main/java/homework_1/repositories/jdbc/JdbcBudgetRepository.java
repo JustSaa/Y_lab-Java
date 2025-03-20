@@ -14,7 +14,8 @@ import java.util.Optional;
  * с использованием JDBC и базы данных PostgreSQL.
  */
 public class JdbcBudgetRepository implements BudgetRepository {
-
+    private static final String INSERT_BUDGET = "INSERT INTO finance.budgets (id, user_id, budget_limit) VALUES (nextval('finance.budgets_seq'), ?, ?)";
+    private static final String SELECT_BY_USERID = "SELECT * FROM finance.budgets WHERE user_id = ?";
     private final Connection connection;
 
     /**
@@ -34,14 +35,27 @@ public class JdbcBudgetRepository implements BudgetRepository {
      */
     @Override
     public void save(Budget budget) {
-        String sql = "INSERT INTO finance.budgets (id, user_id, budget_limit) VALUES (nextval('finance.budgets_seq'), ?, ?)";
-
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setLong(1, budget.getUserId());
-            stmt.setDouble(2, budget.getLimit());
-            stmt.executeUpdate();
+        try {
+            connection.setAutoCommit(false);
+            try (PreparedStatement stmt = connection.prepareStatement(INSERT_BUDGET)) {
+                stmt.setLong(1, budget.getUserId());
+                stmt.setDouble(2, budget.getLimit());
+                stmt.executeUpdate();
+            }
+            connection.commit();
         } catch (SQLException e) {
-            throw new RuntimeException("Ошибка сохранения бюджета пользователя", e);
+            try {
+                connection.rollback();
+                throw new RuntimeException("Ошибка сохранения бюджета пользователя. Транзакция откатилась.", e);
+            } catch (SQLException rollbackEx) {
+                throw new RuntimeException("Ошибка при откате транзакции", rollbackEx);
+            }
+        } finally {
+            try {
+                connection.setAutoCommit(true);
+            } catch (SQLException e) {
+                throw new RuntimeException("Ошибка при включении autoCommit", e);
+            }
         }
     }
 
@@ -54,9 +68,7 @@ public class JdbcBudgetRepository implements BudgetRepository {
      */
     @Override
     public Optional<Budget> findByUserId(long userId) {
-        String sql = "SELECT * FROM finance.budgets WHERE user_id = ?";
-
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (PreparedStatement stmt = connection.prepareStatement(SELECT_BY_USERID)) {
             stmt.setLong(1, userId);
 
             try (ResultSet rs = stmt.executeQuery()) {

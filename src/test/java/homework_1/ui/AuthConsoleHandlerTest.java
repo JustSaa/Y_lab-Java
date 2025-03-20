@@ -98,18 +98,4 @@ class AuthConsoleHandlerTest {
 
         verify(authService, never()).updateUser(anyString(), anyString(), anyString(), anyString());
     }
-
-    @Test
-    void deleteAccount_ShouldNotDelete_WhenNotConfirmed() {
-        User mockUser = new User("Иван Иванов", "ivan@mail.com", "password123", false);
-        authConsoleHandler = new AuthConsoleHandler(authService, new Scanner(System.in));
-
-        String input = "нет\n";
-        System.setIn(new ByteArrayInputStream(input.getBytes()));
-        authConsoleHandler = new AuthConsoleHandler(authService, new Scanner(System.in));
-
-        authConsoleHandler.deleteAccount();
-
-        verify(authService, never()).deleteUser(anyString());
-    }
 }

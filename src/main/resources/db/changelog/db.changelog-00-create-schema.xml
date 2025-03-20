@@ -9,6 +9,11 @@
         <sql>
             CREATE SCHEMA finance;
         </sql>
+        <rollback>
+            <sql>
+                DROP SCHEMA finance CASCADE;
+            </sql>
+        </rollback>
     </changeSet>
 
 </databaseChangeLog>

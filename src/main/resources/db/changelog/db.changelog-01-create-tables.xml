@@ -10,6 +10,13 @@
         <createSequence schemaName="finance" sequenceName="transactions_seq" startValue="1"/>
         <createSequence schemaName="finance" sequenceName="goals_seq" startValue="1"/>
         <createSequence schemaName="finance" sequenceName="budgets_seq" startValue="1"/>
+
+        <rollback>
+            <dropSequence schemaName="finance" sequenceName="users_seq"/>
+            <dropSequence schemaName="finance" sequenceName="transactions_seq"/>
+            <dropSequence schemaName="finance" sequenceName="goals_seq"/>
+            <dropSequence schemaName="finance" sequenceName="budgets_seq"/>
+        </rollback>
     </changeSet>
 
     <changeSet id="create-users-table" author="salavat">
@@ -27,6 +34,10 @@
             <column name="is_admin" type="boolean" defaultValueBoolean="false"/>
             <column name="is_blocked" type="boolean" defaultValueBoolean="false"/>
         </createTable>
+
+        <rollback>
+            <dropTable schemaName="finance" tableName="users"/>
+        </rollback>
     </changeSet>
 
     <changeSet id="create-transactions-table" author="salavat">
@@ -41,6 +52,10 @@
             <column name="date" type="date"/>
             <column name="description" type="varchar(255)"/>
         </createTable>
+
+        <rollback>
+            <dropTable schemaName="finance" tableName="transactions"/>
+        </rollback>
     </changeSet>
 
     <changeSet id="create-goals-table" author="salavat">
@@ -53,6 +68,10 @@
             <column name="target_amount" type="decimal(15,2)"/>
             <column name="current_amount" type="decimal(15,2)" defaultValueNumeric="0"/>
         </createTable>
+
+        <rollback>
+            <dropTable schemaName="finance" tableName="goals"/>
+        </rollback>
     </changeSet>
 
     <changeSet id="create-budgets-table" author="salavat">
@@ -63,6 +82,10 @@
             <column name="user_email" type="varchar(255)"/>
             <column name="budget_limit" type="decimal(15,2)"/>
         </createTable>
+
+        <rollback>
+            <dropTable schemaName="finance" tableName="budgets"/>
+        </rollback>
     </changeSet>
 
 </databaseChangeLog>

@@ -13,6 +13,13 @@
                              references="finance.users(id)"/>
             </column>
         </addColumn>
+
+        <rollback>
+            <dropColumn tableName="transactions" schemaName="finance" columnName="user_id"/>
+            <addColumn tableName="transactions" schemaName="finance">
+                <column name="user_email" type="varchar(255)"/>
+            </addColumn>
+        </rollback>
     </changeSet>
 
     <changeSet id="update-goals-user-relation" author="salavat">
@@ -23,6 +30,13 @@
                              references="finance.users(id)"/>
             </column>
         </addColumn>
+
+        <rollback>
+            <dropColumn tableName="goals" schemaName="finance" columnName="user_id"/>
+            <addColumn tableName="goals" schemaName="finance">
+                <column name="user_email" type="varchar(255)"/>
+            </addColumn>
+        </rollback>
     </changeSet>
 
     <changeSet id="update-budgets-user-relation" author="salavat">
@@ -33,5 +47,12 @@
                              references="finance.users(id)"/>
             </column>
         </addColumn>
+
+        <rollback>
+            <dropColumn tableName="budgets" schemaName="finance" columnName="user_id"/>
+            <addColumn tableName="budgets" schemaName="finance">
+                <column name="user_email" type="varchar(255)"/>
+            </addColumn>
+        </rollback>
     </changeSet>
 </databaseChangeLog>

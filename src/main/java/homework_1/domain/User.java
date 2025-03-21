@@ -21,11 +21,10 @@ public class User {
      * Пароль пользователя
      */
     private String password;
-
     /**
-     * Является ли пользователь админом
+     * Роль пользователя
      */
-    private boolean isAdmin = false;
+    private UserRole role;
     /**
      * Заблокирован ли пользователь
      */
@@ -37,26 +36,26 @@ public class User {
      * @param name     имя пользователя
      * @param email    email
      * @param password пароль
-     * @param isAdmin  является ли пользователь Админом
+     * @param role     Роль пользователя (например, ADMIN, USER)
      */
-    public User(String name, String email, String password, boolean isAdmin) {
+    public User(String name, String email, String password, UserRole role) {
         this.id = 0;
         this.name = name;
         this.email = email;
         this.password = password;
-        this.isAdmin = isAdmin;
+        this.role = role;
         this.isBlocked = false;
     }
 
     /**
      * Конструктор для загрузки пользователя из БД.
      */
-    public User(long id, String name, String email, String password, boolean isAdmin, boolean isBlocked) {
+    public User(long id, String name, String email, String password, UserRole role, boolean isBlocked) {
         this.id = id;
         this.name = name;
         this.email = email;
         this.password = password;
-        this.isAdmin = isAdmin;
+        this.role = role;
         this.isBlocked = isBlocked;
     }
 
@@ -84,12 +83,12 @@ public class User {
         this.password = password;
     }
 
-    public boolean isAdmin() {
-        return isAdmin;
+    public UserRole getRole() {
+        return role;
     }
 
-    public void setAdmin(boolean admin) {
-        isAdmin = admin;
+    public void setRole(UserRole role) {
+        this.role = role;
     }
 
     public boolean isBlocked() {
@@ -108,21 +107,26 @@ public class User {
         this.id = id;
     }
 
+    /**
+     * Проверяет, является ли пользователь администратором.
+     *
+     * @return true, если у пользователя роль ADMIN.
+     */
+    public boolean isAdmin() {
+        return role == UserRole.ADMIN;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         User user = (User) o;
-        return Objects.equals(email, user.email) &&
-                Objects.equals(name, user.name) &&
-                Objects.equals(password, user.password) &&
-                isAdmin == user.isAdmin &&
-                isBlocked == user.isBlocked;
+        return id == user.id;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(email, name, password, isAdmin, isBlocked);
+        return Objects.hash(email);
     }
 
     @Override
@@ -130,6 +134,7 @@ public class User {
         return "User{" +
                 "name='" + name + '\'' +
                 ", email='" + email + '\'' +
+                ", role=" + role +
                 '}';
     }
 }

@@ -2,6 +2,7 @@ package homework_1.ui;
 
 import homework_1.domain.Goal;
 import homework_1.domain.User;
+import homework_1.domain.UserRole;
 import homework_1.services.impl.GoalServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,7 +27,7 @@ class GoalConsoleHandlerTest {
         goalServiceImpl = mock(GoalServiceImpl.class);
         scanner = mock(Scanner.class);
         goalConsoleHandler = new GoalConsoleHandler(goalServiceImpl, scanner);
-        testUser = new User("Иван Иванов", "test@example.com", "password123", false);
+        testUser = new User("Иван Иванов", "test@example.com", "password123", UserRole.USER);
     }
 
     @Test

@@ -42,7 +42,6 @@ class NotificationServiceTest {
 
     @Test
     void sendNotification_WhenBudgetExceeded_ShouldBeTriggered() {
-        String testEmail = "user@example.com";
         long userId = 0;
 
         when(budgetService.getUserBudget(userId)).thenReturn(Optional.of(new Budget(userId, 500)));
@@ -64,7 +63,7 @@ class NotificationServiceTest {
 
     @Test
     void sendNotification_WhenBudgetNotExceeded_ShouldNotBeTriggered() {
-        User user = new User("Тест", "Тест@mail.ru", "password", false);
+        User user = new User("Тест", "Тест@mail.ru", "password", UserRole.USER);
         Budget budget = new Budget(user.getId(), 500);
 
         when(budgetService.getUserBudget(user.getId())).thenReturn(Optional.of(budget));

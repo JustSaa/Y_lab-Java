@@ -28,13 +28,13 @@ class JdbcBudgetRepositoryTest extends AbstractTestContainerTest {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-        String userSql = "INSERT INTO finance.users (id, name, email, password, is_admin, is_blocked) VALUES (?, ?, ?, ?, ?, ?)";
+        String userSql = "INSERT INTO finance.users (id, name, email, password, user_role, is_blocked) VALUES (?, ?, ?, ?, ?, ?)";
         try (PreparedStatement stmt = connection.prepareStatement(userSql)) {
             stmt.setLong(1, 0);
             stmt.setString(2, "Test User");
             stmt.setString(3, "test@example.com");
             stmt.setString(4, "password");
-            stmt.setBoolean(5, false);
+            stmt.setString(5, "ADMIN");
             stmt.setBoolean(6, false);
             stmt.executeUpdate();
         } catch (SQLException e) {

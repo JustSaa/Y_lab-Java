@@ -37,19 +37,19 @@ class JdbcTransactionRepositoryTest extends AbstractTestContainerTest {
         }
 
         String userSql = """
-            INSERT INTO finance.users (name, email, password, is_admin, is_blocked) 
+            INSERT INTO finance.users (name, email, password, user_role, is_blocked) 
             VALUES (?, ?, ?, ?, ?) RETURNING id
             """;
         try (PreparedStatement stmt = connection.prepareStatement(userSql)) {
             stmt.setString(1, "Test User");
             stmt.setString(2, "test@example.com");
             stmt.setString(3, "password");
-            stmt.setBoolean(4, false);
+            stmt.setString(4, "USER");
             stmt.setBoolean(5, false);
 
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    userId = rs.getLong(1); // Теперь userId будет корректным
+                    userId = rs.getLong(1);
                 }
             }
         } catch (SQLException e) {
@@ -117,7 +117,6 @@ class JdbcTransactionRepositoryTest extends AbstractTestContainerTest {
         transaction.setDescription("Изменено");
         transactionRepository.update(transaction);
 
-        // Проверяем, что обновление сработало
         Optional<Transaction> updatedTransaction = transactionRepository.findById(userId, transaction.getId());
 
         assertThat(updatedTransaction).isPresent();

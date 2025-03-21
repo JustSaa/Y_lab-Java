@@ -31,7 +31,7 @@
                 <constraints unique="true" nullable="false"/>
             </column>
             <column name="password" type="varchar(255)"/>
-            <column name="is_admin" type="boolean" defaultValueBoolean="false"/>
+            <column name="user_role" type="varchar(255)"/>
             <column name="is_blocked" type="boolean" defaultValueBoolean="false"/>
         </createTable>
 

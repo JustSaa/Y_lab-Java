@@ -1,6 +1,7 @@
 package homework_1.ui;
 
 import homework_1.domain.User;
+import homework_1.domain.UserRole;
 import homework_1.services.AuthService;
 import homework_1.services.BudgetService;
 import homework_1.services.TransactionService;
@@ -26,7 +27,7 @@ class BudgetConsoleHandlerTest {
         //transactionService = mock(TransactionService.class);
         budgetService = mock(BudgetService.class);
         budgetConsoleHandler = new BudgetConsoleHandler(budgetService, new Scanner(System.in));
-        user = new User("Тестовый Пользователь", "test@mail.com", "password123", false);
+        user = new User("Тестовый Пользователь", "test@mail.com", "password123", UserRole.USER);
     }
 
     @Test

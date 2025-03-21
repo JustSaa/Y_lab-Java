@@ -2,6 +2,7 @@ package homework_1.ui;
 
 import homework_1.common.utils.Validator;
 import homework_1.domain.User;
+import homework_1.domain.UserRole;
 import homework_1.services.AuthService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,16 +42,14 @@ public class AuthConsoleHandler {
         String password = scanner.nextLine();
 
         System.out.println("Является ли пользователь администратором? (да/нет)");
-        String adminResponse = scanner.nextLine().trim().toLowerCase();
-        boolean isAdmin = adminResponse.equals("да");
+        String roleInput = scanner.nextLine().trim().toLowerCase();
+        UserRole role = roleInput.equals("да") ? UserRole.ADMIN : UserRole.USER;
 
         try {
-            currentUser = authService.register(name, email, password, isAdmin);
-            currentUser.setAdmin(isAdmin);
+            currentUser = authService.register(name, email, password, role);
             logger.info("Успешная регистрация пользователя: {} | Роль: {}",
-                    email, isAdmin ? "Администратор" : "Обычный пользователь");
+                    email, role);
             System.out.println("Вы успешно зарегистрированы: " + currentUser.getEmail());
-            System.out.println("Роль: " + (isAdmin ? "Администратор" : "Обычный пользователь"));
             return currentUser;
         } catch (IllegalArgumentException e) {
             logger.error("Ошибка регистрации: {}", e.getMessage());
@@ -98,7 +97,11 @@ public class AuthConsoleHandler {
         System.out.println("Введите новый пароль:");
         String newPassword = scanner.nextLine();
 
-        authService.updateUser(currentUser.getEmail(), newName, newEmail, newPassword);
+        System.out.println("Является ли пользователь администратором? (да/нет)");
+        String roleInput = scanner.nextLine().trim().toLowerCase();
+        UserRole newRole = roleInput.equals("да") ? UserRole.ADMIN : UserRole.USER;
+
+        authService.updateUser(currentUser.getEmail(), newName, newEmail, newPassword, newRole);
         logger.info("Профиль пользователя {} обновлён. Новый email: {}", currentUser.getEmail(), newEmail);
         System.out.println("Профиль обновлён.");
     }

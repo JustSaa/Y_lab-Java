@@ -8,7 +8,7 @@ class UserTest {
 
     @Test
     void gettersAndSetters_WorkCorrectly() {
-        User user = new User("Иван", "ivan@mail.com", "pass", false);
+        User user = new User("Иван", "ivan@mail.com", "pass", UserRole.USER);
 
         user.setName("Пётр");
         user.setEmail("petr@mail.com");

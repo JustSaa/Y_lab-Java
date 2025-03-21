@@ -1,6 +1,7 @@
 package homework_1.repositories.jdbc;
 
 import homework_1.domain.User;
+import homework_1.domain.UserRole;
 import homework_1.repositories.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,7 +17,7 @@ public class JdbcUserRepository implements UserRepository {
     private static final Logger logger = LoggerFactory.getLogger(JdbcUserRepository.class);
 
     private static final String SAVE = """
-            INSERT INTO finance.users (name, email, password, is_admin, is_blocked)
+            INSERT INTO finance.users (name, email, password, user_role, is_blocked)
             VALUES (?, ?, ?, ?, ?)
             RETURNING id
             """;
@@ -25,8 +26,8 @@ public class JdbcUserRepository implements UserRepository {
     private static final String DELETE = "DELETE FROM finance.users WHERE email = ?";
     private static final String UPDATE = """
             UPDATE finance.users
-            SET name = ?, password = ?, is_admin = ?, is_blocked = ?
-            WHERE email = ?
+            SET name = ?, password = ?, user_role = ?, is_blocked = ?, email = ?
+            WHERE id = ?
             """;
     private static final String BLOCK_USER = "UPDATE finance.users SET is_blocked = TRUE WHERE email = ?";
 
@@ -57,12 +58,11 @@ public class JdbcUserRepository implements UserRepository {
                 stmt.setString(1, user.getName());
                 stmt.setString(2, user.getEmail());
                 stmt.setString(3, user.getPassword());
-                stmt.setBoolean(4, user.isAdmin());
+                stmt.setString(4, user.getRole().name());
                 stmt.setBoolean(5, user.isBlocked());
 
                 stmt.executeUpdate();
 
-                // Получаем сгенерированный ID
                 try (ResultSet rs = stmt.getGeneratedKeys()) {
                     if (rs.next()) {
                         user.setId(rs.getLong("id"));
@@ -178,9 +178,10 @@ public class JdbcUserRepository implements UserRepository {
             try (PreparedStatement stmt = connection.prepareStatement(UPDATE)) {
                 stmt.setString(1, user.getName());
                 stmt.setString(2, user.getPassword());
-                stmt.setBoolean(3, user.isAdmin());
+                stmt.setString(3, user.getRole().name());
                 stmt.setBoolean(4, user.isBlocked());
                 stmt.setString(5, user.getEmail());
+                stmt.setLong(6, user.getId());
 
                 int rowsUpdated = stmt.executeUpdate();
                 if (rowsUpdated == 0) {
@@ -249,7 +250,7 @@ public class JdbcUserRepository implements UserRepository {
                 rs.getString("name"),
                 rs.getString("email"),
                 rs.getString("password"),
-                rs.getBoolean("is_admin"),
+                UserRole.valueOf(rs.getString("user_role")),
                 rs.getBoolean("is_blocked")
         );
     }

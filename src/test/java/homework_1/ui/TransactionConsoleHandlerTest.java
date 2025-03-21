@@ -24,7 +24,7 @@ class TransactionConsoleHandlerTest {
         transactionService = Mockito.mock(TransactionService.class);
         scanner = new Scanner("");
         consoleHandler = new TransactionConsoleHandler(transactionService, scanner);
-        user = new User("Тест", "test@mail.com", "password", false);
+        user = new User("Тест", "test@mail.com", "password", UserRole.USER);
     }
 
     @Test

@@ -1,6 +1,7 @@
 package homework_1.repositories.in_memory;
 
 import homework_1.domain.User;
+import homework_1.domain.UserRole;
 import org.junit.jupiter.api.Test;
 
 import java.util.Optional;
@@ -13,7 +14,7 @@ class InMemoryUserRepositoryTest {
 
     @Test
     void saveAndFindByEmail_Success() {
-        User user = new User("Иван Иванов", "ivan@mail.com", "pass", false);
+        User user = new User("Иван Иванов", "ivan@mail.com", "pass", UserRole.USER);
         repository.save(user);
 
         Optional<User> foundUser = repository.findByEmail(user.getEmail());
@@ -23,7 +24,7 @@ class InMemoryUserRepositoryTest {
 
     @Test
     void findById_UserExists_ReturnsUser() {
-        User user = new User("Иван", "ivan@mail.com", "pass", false);
+        User user = new User("Иван", "ivan@mail.com", "pass", UserRole.USER);
         repository.save(user);
 
         Optional<User> found = repository.findByEmail(user.getEmail());
@@ -33,7 +34,7 @@ class InMemoryUserRepositoryTest {
 
     @Test
     void delete_User_RemovedSuccessfully() {
-        User user = new User("Иван", "ivan@mail.com", "pass", false);
+        User user = new User("Иван", "ivan@mail.com", "pass", UserRole.USER);
         repository.save(user);
 
         repository.delete(user.getEmail());

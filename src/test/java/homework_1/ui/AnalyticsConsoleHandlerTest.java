@@ -1,6 +1,7 @@
 package homework_1.ui;
 
 import homework_1.domain.User;
+import homework_1.domain.UserRole;
 import homework_1.services.AnalyticsService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -20,7 +21,7 @@ class AnalyticsConsoleHandlerTest {
     void setUp() {
         analyticsService = mock(AnalyticsService.class);
         analyticsConsoleHandler = new AnalyticsConsoleHandler(analyticsService, new Scanner(System.in));
-        currentUser = new User("User1", "user1@mail.com", "password", false);
+        currentUser = new User("User1", "user1@mail.com", "password", UserRole.USER);
     }
 
     @Test

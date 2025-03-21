@@ -1,6 +1,7 @@
 package homework_1.repositories.jdbc;
 
 import homework_1.domain.User;
+import homework_1.domain.UserRole;
 import org.junit.jupiter.api.*;
 
 import java.util.Optional;
@@ -18,7 +19,7 @@ class JdbcUserRepositoryTest extends AbstractTestContainerTest {
 
     @Test
     void shouldSaveAndFindUserByEmail() {
-        User user = new User("John Doe", "john@example.com", "password123", false);
+        User user = new User("John Doe", "john@example.com", "password123", UserRole.USER);
 
         userRepository.save(user);
         Optional<User> foundUser = userRepository.findByEmail("john@example.com");
@@ -29,7 +30,7 @@ class JdbcUserRepositoryTest extends AbstractTestContainerTest {
 
     @Test
     void shouldDeleteUser() {
-        User user = new User("JoonaSnow", "JoonaSnow@example.com", "pass", false);
+        User user = new User("JoonaSnow", "JoonaSnow@example.com", "pass", UserRole.USER);
         userRepository.save(user);
 
         userRepository.delete("JoonaSnow@example.com");
@@ -40,12 +41,12 @@ class JdbcUserRepositoryTest extends AbstractTestContainerTest {
 
     @Test
     void shouldUpdateUser() {
-        User user = new User("Jane Doe", "jane@example.com", "pass", false);
-        User userUpdate = new User("Ivan", "jane@example.com", "pass", false);
+        User user = new User(1, "Jane Doe", "jane@example.com", "pass", UserRole.USER, true);
+        User userUpdate = new User(1, "Ivan", "ivan@example.com", "pass", UserRole.USER, true);
         userRepository.save(user);
         userRepository.update(userUpdate);
 
-        Optional<User> foundUser = userRepository.findByEmail("jane@example.com");
+        Optional<User> foundUser = userRepository.findByEmail("ivan@example.com");
         assertThat(foundUser.get()).isEqualTo(userUpdate);
     }
 }

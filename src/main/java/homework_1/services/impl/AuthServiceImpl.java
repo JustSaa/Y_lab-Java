@@ -1,5 +1,6 @@
 package homework_1.services.impl;
 
+import homework_1.domain.UserRole;
 import homework_1.repositories.UserRepository;
 import homework_1.common.exceptions.AuthenticationException;
 import homework_1.domain.User;
@@ -25,17 +26,17 @@ public class AuthServiceImpl implements AuthService {
      * @param name     имя
      * @param email    электронная почта
      * @param password пароль
-     * @param isAdmin является ли пользователь Админом
+     * @param role     роль пользователя (например, ADMIN, USER)
      * @return созданный пользователь
      */
     @Override
-    public User register(String name, String email, String password, boolean isAdmin) {
+    public User register(String name, String email, String password, UserRole role) {
         Optional<User> existingUser = userRepository.findByEmail(email);
         if (existingUser.isPresent()) {
             throw new IllegalArgumentException("Пользователь с таким email уже существует");
         }
 
-        User newUser = new User(name, email, password, isAdmin);
+        User newUser = new User(name, email, password, role);
         userRepository.save(newUser);
 
         return newUser;
@@ -65,13 +66,14 @@ public class AuthServiceImpl implements AuthService {
      * @param newPassword новый пароль
      * @throws IllegalArgumentException если пользователь не найден
      */
-    public void updateUser(String email, String newName, String newEmail, String newPassword) {
+    public void updateUser(String email, String newName, String newEmail, String newPassword, UserRole newRole) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("Пользователь не найден"));
 
         user.setName(newName);
         user.setEmail(newEmail);
         user.setPassword(newPassword);
+        user.setRole(newRole);
 
         userRepository.update(user);
     }

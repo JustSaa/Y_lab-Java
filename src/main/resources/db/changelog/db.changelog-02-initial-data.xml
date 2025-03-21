@@ -11,7 +11,7 @@
             <column name="name" value="Администратор"/>
             <column name="email" value="admin@example.com"/>
             <column name="password" value="admin123"/>
-            <column name="is_admin" valueBoolean="true"/>
+            <column name="user_role" valueBoolean="ADMIN"/>
             <column name="is_blocked" valueBoolean="false"/>
         </insert>
 

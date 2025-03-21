@@ -41,7 +41,7 @@ class TransactionServiceImplTest {
     @BeforeEach
     void setUp() {
         userEmail = "example@mail.ru";
-        user = new User("Иван Иванов", userEmail, "password123", false);
+        user = new User("Иван Иванов", userEmail, "password123", UserRole.USER);
 
         transactionIncome = new Transaction(1,
                 user.getId(), 1000.0, TransactionType.INCOME,

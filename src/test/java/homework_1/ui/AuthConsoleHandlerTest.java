@@ -2,6 +2,7 @@ package homework_1.ui;
 
 import homework_1.common.exceptions.AuthenticationException;
 import homework_1.domain.User;
+import homework_1.domain.UserRole;
 import homework_1.services.AuthService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,14 +31,14 @@ class AuthConsoleHandlerTest {
 
         authConsoleHandler = new AuthConsoleHandler(authService, new Scanner(System.in));
 
-        User mockUser = new User("Иван Иванов", "ivan@mail.com", "password123", true);
-        when(authService.register("Иван Иванов", "ivan@mail.com", "password123", true)).thenReturn(mockUser);
+        User mockUser = new User("Иван Иванов", "ivan@mail.com", "password123", UserRole.ADMIN);
+        when(authService.register("Иван Иванов", "ivan@mail.com", "password123", UserRole.ADMIN)).thenReturn(mockUser);
 
         User registeredUser = authConsoleHandler.register();
 
         assertThat(registeredUser).isNotNull();
         assertThat(registeredUser.getEmail()).isEqualTo("ivan@mail.com");
-        verify(authService, times(1)).register("Иван Иванов", "ivan@mail.com", "password123", true);
+        verify(authService, times(1)).register("Иван Иванов", "ivan@mail.com", "password123", UserRole.ADMIN);
     }
 
     @Test
@@ -50,7 +51,7 @@ class AuthConsoleHandlerTest {
         User registeredUser = authConsoleHandler.register();
 
         assertThat(registeredUser).isNull();
-        verify(authService, never()).register(anyString(), anyString(), anyString(), anyBoolean());
+        verify(authService, never()).register(anyString(), anyString(), anyString(), any(UserRole.class));
     }
 
     @Test
@@ -60,7 +61,7 @@ class AuthConsoleHandlerTest {
 
         authConsoleHandler = new AuthConsoleHandler(authService, new Scanner(System.in));
 
-        User mockUser = new User("Иван Иванов", "ivan@mail.com", "password123", false);
+        User mockUser = new User("Иван Иванов", "ivan@mail.com", "password123", UserRole.USER);
         when(authService.login("ivan@mail.com", "password123")).thenReturn(mockUser);
 
         User loggedInUser = authConsoleHandler.login();
@@ -87,7 +88,7 @@ class AuthConsoleHandlerTest {
 
     @Test
     void editProfile_ShouldNotUpdate_WhenEmailIsInvalid() {
-        User mockUser = new User("Иван Иванов", "ivan@mail.com", "password123", false);
+        User mockUser = new User("Иван Иванов", "ivan@mail.com", "password123", UserRole.USER);
         authConsoleHandler = new AuthConsoleHandler(authService, new Scanner(System.in));
 
         String input = "Новый Иван\ninvalid-email\nnewpassword\n";
@@ -96,6 +97,6 @@ class AuthConsoleHandlerTest {
 
         authConsoleHandler.editProfile();
 
-        verify(authService, never()).updateUser(anyString(), anyString(), anyString(), anyString());
+        verify(authService, never()).updateUser(anyString(), anyString(), anyString(), anyString(), any(UserRole.class));
     }
 }

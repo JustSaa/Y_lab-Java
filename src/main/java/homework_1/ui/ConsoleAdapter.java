@@ -2,14 +2,17 @@ package homework_1.ui;
 
 import homework_1.domain.User;
 import homework_1.services.*;
-import homework_1.services.impl.GoalServiceImpl;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import java.sql.SQLException;
 import java.util.Scanner;
 
 /**
  * Консольный интерфейс пользователя.
  */
 public class ConsoleAdapter {
+    private static final Logger logger = LoggerFactory.getLogger(ConsoleAdapter.class);
     private final AuthConsoleHandler authHandler;
     private final TransactionConsoleHandler transactionHandler;
     private final GoalConsoleHandler goalHandler;
@@ -29,7 +32,7 @@ public class ConsoleAdapter {
         this.budgetConsoleHandler = new BudgetConsoleHandler(budgetService, scanner);
     }
 
-    public void start() {
+    public void start() throws SQLException {
         boolean running = true;
         while (running) {
             if (authHandler.getCurrentUser() == null) {
@@ -48,25 +51,31 @@ public class ConsoleAdapter {
                 case 1 -> {
                     User newUser = authHandler.register();
                     if (newUser != null) {
+                        logger.info("Пользователь {} успешно зарегистрирован", newUser.getEmail());
                         return true;
                     }
                 }
                 case 2 -> {
                     User loggedInUser = authHandler.login();
                     if (loggedInUser != null) {
+                        logger.info("Пользователь {} вошел в систему", loggedInUser.getEmail());
                         return true;
                     }
                 }
                 case 0 -> {
+                    logger.info("Выход из системы");
                     System.out.println("Выход...");
                     return false;
                 }
-                default -> System.out.println("Некорректный ввод, попробуйте снова.");
+                default -> {
+                    logger.warn("Некорректный ввод в меню авторизации");
+                    System.out.println("Некорректный ввод, попробуйте снова.");
+                }
             }
         }
     }
 
-    private boolean mainMenu() {
+    private boolean mainMenu() throws SQLException {
         while (true) {
             System.out.println("1. Добавить транзакцию");
             System.out.println("2. Просмотреть транзакции");
@@ -93,11 +102,20 @@ public class ConsoleAdapter {
 
             int choice = getIntInput();
             switch (choice) {
-                case 1 -> transactionHandler.createTransaction(authHandler.getCurrentUser());
+                case 1 -> {
+                    transactionHandler.createTransaction(authHandler.getCurrentUser());
+                    logger.info("Транзакция добавлена пользователем {}", authHandler.getCurrentUser().getEmail());
+                }
                 case 2 -> transactionHandler.showTransactions(authHandler.getCurrentUser());
                 case 3 -> transactionHandler.showBalance(authHandler.getCurrentUser());
-                case 4 -> authHandler.editProfile();
-                case 5 -> authHandler.deleteAccount();
+                case 4 -> {
+                    authHandler.editProfile();
+                    logger.info("Пользователь {} изменил профиль", authHandler.getCurrentUser().getEmail());
+                }
+                case 5 -> {
+                    logger.warn("Пользователь {} удаляет аккаунт", authHandler.getCurrentUser().getEmail());
+                    authHandler.deleteAccount();
+                }
                 case 6 -> goalHandler.createGoal(authHandler.getCurrentUser());
                 case 7 -> goalHandler.showGoals(authHandler.getCurrentUser());
                 case 8 -> goalHandler.addToGoal();
@@ -107,6 +125,7 @@ public class ConsoleAdapter {
                 case 12 -> {
                     if (authHandler.getCurrentUser().isAdmin()) {
                         adminHandler.showAllUsers();
+                        logger.info("Администратор {} просмотрел список пользователей", authHandler.getCurrentUser().getEmail());
                     } else {
                         System.out.println("Ошибка: У вас нет прав администратора.");
                     }
@@ -114,6 +133,7 @@ public class ConsoleAdapter {
                 case 13 -> {
                     if (authHandler.getCurrentUser().isAdmin()) {
                         adminHandler.blockUser(authHandler.getCurrentUser());
+                        logger.warn("Администратор {} заблокировал пользователя", authHandler.getCurrentUser().getEmail());
                     } else {
                         System.out.println("Ошибка: У вас нет прав администратора.");
                     }
@@ -121,6 +141,7 @@ public class ConsoleAdapter {
                 case 14 -> {
                     if (authHandler.getCurrentUser().isAdmin()) {
                         adminHandler.deleteUser(authHandler.getCurrentUser());
+                        logger.warn("Администратор {} удалил пользователя", authHandler.getCurrentUser().getEmail());
                     } else {
                         System.out.println("Ошибка: У вас нет прав администратора.");
                     }
@@ -129,10 +150,14 @@ public class ConsoleAdapter {
                 case 16 -> analyticsHandler.showCategoryAnalysis(authHandler.getCurrentUser());
                 case 17 -> analyticsHandler.showIncomeAndExpensesForPeriod(authHandler.getCurrentUser());
                 case 0 -> {
+                    logger.info("Выход из системы пользователем {}", authHandler.getCurrentUser().getEmail());
                     System.out.println("Выход...");
                     return false;
                 }
-                default -> System.out.println("Некорректный ввод, попробуйте снова.");
+                default -> {
+                    logger.warn("Некорректный ввод в главном меню");
+                    System.out.println("Некорректный ввод, попробуйте снова.");
+                }
             }
         }
     }
@@ -146,6 +171,7 @@ public class ConsoleAdapter {
                 System.out.print("Введите число: ");
                 return Integer.parseInt(scanner.nextLine().trim());
             } catch (NumberFormatException e) {
+                logger.warn("Ошибка: пользователь ввел некорректное число.");
                 System.out.println("Ошибка: введите корректное число.");
             }
         }

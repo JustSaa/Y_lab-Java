@@ -45,8 +45,8 @@ public class TransactionConsoleHandler {
             System.out.println("Введите описание:");
             String description = scanner.nextLine();
 
-            Transaction transaction = new Transaction(
-                    user.getEmail(), amount, type, category, LocalDate.now(), description
+            Transaction transaction = new Transaction(1,
+                    user.getId(), amount, type, category, LocalDate.now(), description
             );
 
             transactionService.createTransaction(transaction);
@@ -57,12 +57,12 @@ public class TransactionConsoleHandler {
     }
 
     public void showTransactions(User user) {
-        List<Transaction> transactions = transactionService.getTransactions(user.getEmail());
+        List<Transaction> transactions = transactionService.getTransactions(user.getId());
         transactions.forEach(System.out::println);
     }
 
     public void showBalance(User user) {
-        double balance = transactionService.calculateBalance(user.getEmail());
+        double balance = transactionService.calculateBalance(user.getId());
         System.out.println("Текущий баланс: " + balance);
     }
 }

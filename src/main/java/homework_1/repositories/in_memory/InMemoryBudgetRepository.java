@@ -11,15 +11,15 @@ import java.util.Optional;
  * Реализация репозитория бюджетов в памяти.
  */
 public class InMemoryBudgetRepository implements BudgetRepository {
-    private final Map<String, Budget> budgets = new HashMap<>();
+    private final Map<Long, Budget> budgets = new HashMap<>();
 
     @Override
     public void save(Budget budget) {
-        budgets.put(budget.getUserEmail(), budget);
+        budgets.put(budget.getUserId(), budget);
     }
 
     @Override
-    public Optional<Budget> findByUserEmail(String userEmail) {
-        return Optional.ofNullable(budgets.get(userEmail));
+    public Optional<Budget> findByUserId(long userId) {
+        return Optional.ofNullable(budgets.get(userId));
     }
 }

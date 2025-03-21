@@ -2,6 +2,7 @@ package homework_1.services;
 
 import homework_1.domain.User;
 import homework_1.common.exceptions.AuthenticationException;
+import homework_1.domain.UserRole;
 
 import java.util.List;
 
@@ -16,9 +17,10 @@ public interface AuthService {
      * @param name     имя
      * @param email    электронная почта
      * @param password пароль
+     * @param role     роль пользователя (например, ADMIN, USER)
      * @return созданный пользователь
      */
-    User register(String name, String email, String password);
+    User register(String name, String email, String password, UserRole role);
 
     /**
      * Авторизация пользователя.
@@ -38,9 +40,10 @@ public interface AuthService {
      * @param newName     новое имя
      * @param newEmail    новая почта
      * @param newPassword новый пароль
+     * @param newRole        роль пользователя (например, ADMIN, USER)
      * @throws IllegalArgumentException если пользователь не найден
      */
-    void updateUser(String email, String newName, String newEmail, String newPassword);
+    void updateUser(String email, String newName, String newEmail, String newPassword, UserRole newRole);
 
     /**
      * Удаление пользователя.

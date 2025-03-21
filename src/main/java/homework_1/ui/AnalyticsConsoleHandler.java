@@ -2,6 +2,8 @@ package homework_1.ui;
 
 import homework_1.services.AnalyticsService;
 import homework_1.domain.User;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Scanner;
 
@@ -9,7 +11,7 @@ import java.util.Scanner;
  * Обработчик консольных команд для аналитики и отчетов.
  */
 public class AnalyticsConsoleHandler {
-
+    private static final Logger logger = LoggerFactory.getLogger(AnalyticsConsoleHandler.class);
     private final AnalyticsService analyticsService;
     private final Scanner scanner;
 
@@ -25,11 +27,13 @@ public class AnalyticsConsoleHandler {
      */
     public void showFinancialReport(User currentUser) {
         if (currentUser == null) {
+            logger.warn("Попытка просмотра отчёта без авторизации.");
             System.out.println("Ошибка: Необходимо войти в систему.");
             return;
         }
-
-        String report = analyticsService.generateFinancialReport(currentUser.getEmail());
+        logger.info("Генерация финансового отчёта для пользователя ID {}", currentUser.getId());
+        String report = analyticsService.generateFinancialReport(currentUser.getId());
+        logger.info("Отчёт: \n{}", report);
         System.out.println(report);
     }
 
@@ -40,6 +44,7 @@ public class AnalyticsConsoleHandler {
      */
     public void showIncomeAndExpensesForPeriod(User currentUser) {
         if (currentUser == null) {
+            logger.warn("Попытка просмотра доходов и расходов без авторизации.");
             System.out.println("Ошибка: Необходимо войти в систему.");
             return;
         }
@@ -49,9 +54,12 @@ public class AnalyticsConsoleHandler {
         System.out.println("Введите конечную дату (ГГГГ-ММ-ДД):");
         String endDate = scanner.nextLine();
 
-        double income = analyticsService.getTotalIncome(currentUser.getEmail(), startDate, endDate);
-        double expenses = analyticsService.getTotalExpenses(currentUser.getEmail(), startDate, endDate);
+        logger.info("Запрос доходов и расходов для пользователя ID {} за период {} - {}",
+                currentUser.getId(), startDate, endDate);
+        double income = analyticsService.getTotalIncome(currentUser.getId(), startDate, endDate);
+        double expenses = analyticsService.getTotalExpenses(currentUser.getId(), startDate, endDate);
 
+        logger.info("Доход: {} | Расход: {}", income, expenses);
         System.out.println("Доход за выбранный период: " + income);
         System.out.println("Расход за выбранный период: " + expenses);
     }
@@ -63,11 +71,15 @@ public class AnalyticsConsoleHandler {
      */
     public void showCategoryAnalysis(User currentUser) {
         if (currentUser == null) {
+            logger.warn("Попытка просмотра анализа расходов без авторизации.");
             System.out.println("Ошибка: Необходимо войти в систему.");
             return;
         }
 
-        String report = analyticsService.analyzeExpensesByCategory(currentUser.getEmail());
+        logger.info("Анализ расходов по категориям для пользователя ID {}", currentUser.getId());
+        String report = analyticsService.analyzeExpensesByCategory(currentUser.getId());
+
+        logger.info("Анализ расходов:\n{}", report);
         System.out.println(report);
     }
 }

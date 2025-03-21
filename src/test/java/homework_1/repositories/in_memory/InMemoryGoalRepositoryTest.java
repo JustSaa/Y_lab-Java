@@ -5,9 +5,9 @@ import homework_1.repositories.GoalRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.*;
 
@@ -16,15 +16,15 @@ class InMemoryGoalRepositoryTest {
     private GoalRepository goalRepository;
     private Goal goal1;
     private Goal goal2;
-    private String userEmail;
+    private long userId;
 
     @BeforeEach
     void setUp() {
         goalRepository = new InMemoryGoalRepository();
-        userEmail = "test@mail.com";
+        userId = 0;
 
-        goal1 = new Goal(userEmail, "Накопить на ноутбук", 1000.0);
-        goal2 = new Goal(userEmail, "Отпуск", 5000.0);
+        goal1 = new Goal(1, userId, "Накопить на ноутбук", 1000.0, 0);
+        goal2 = new Goal(2, userId, "Отпуск", 5000.0, 0);
 
         goalRepository.save(goal1);
         goalRepository.save(goal2);
@@ -40,7 +40,7 @@ class InMemoryGoalRepositoryTest {
 
     @Test
     void findById_ShouldReturnEmptyIfNotExists() {
-        UUID nonExistentId = UUID.randomUUID();
+        long nonExistentId = 3;
 
         Optional<Goal> foundGoal = goalRepository.findById(nonExistentId);
 
@@ -48,8 +48,8 @@ class InMemoryGoalRepositoryTest {
     }
 
     @Test
-    void findByUserEmail_ShouldReturnUserGoals() {
-        List<Goal> goals = goalRepository.findByUserEmail(userEmail);
+    void findByUserEmail_ShouldReturnUserGoals() throws SQLException {
+        List<Goal> goals = goalRepository.findByUserId(userId);
 
         assertThat(goals).hasSize(2);
         assertThat(goals).extracting(Goal::getName).containsExactlyInAnyOrder("Накопить на ноутбук", "Отпуск");

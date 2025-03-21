@@ -3,16 +3,18 @@ package homework_1.ui;
 import homework_1.domain.Goal;
 import homework_1.domain.User;
 import homework_1.services.GoalService;
-import homework_1.services.impl.GoalServiceImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Scanner;
-import java.util.UUID;
 
 /**
  * Обработчик команд для работы с целями.
  */
 public class GoalConsoleHandler {
+    private static final Logger logger = LoggerFactory.getLogger(GoalConsoleHandler.class);
     private final GoalService goalService;
     private final Scanner scanner;
 
@@ -31,15 +33,16 @@ public class GoalConsoleHandler {
         System.out.println("Введите сумму накопления:");
         double amount = Double.parseDouble(scanner.nextLine());
 
-        goalService.createGoal(user.getEmail(), name, amount);
+        goalService.createGoal(user.getId(), name, amount);
         System.out.println("Цель добавлена.");
+        logger.info("Пользователь {} создал новую цель: {} на сумму {}", user.getEmail(), name, amount);
     }
 
     /**
      * Отображает список целей пользователя.
      */
-    public void showGoals(User user) {
-        List<Goal> goals = goalService.getUserGoals(user.getEmail());
+    public void showGoals(User user) throws SQLException {
+        List<Goal> goals = goalService.getUserGoals(user.getId());
         goals.forEach(goal -> System.out.println(goal.getName() + " - " +
                 goal.getCurrentAmount() + "/" + goal.getTargetAmount()));
     }
@@ -48,13 +51,13 @@ public class GoalConsoleHandler {
      * Пополняет цель на указанную сумму.
      */
     public void addToGoal() {
-        System.out.println("Введите ID цели:");
-        UUID goalId = UUID.fromString(scanner.nextLine());
+        System.out.println("Введите название цели:");
+        String goalName = scanner.nextLine();
 
         System.out.println("Введите сумму для пополнения:");
         double amount = Double.parseDouble(scanner.nextLine());
 
-        goalService.addToGoal(goalId, amount);
+        goalService.addToGoal(goalName, amount);
         System.out.println("Цель пополнена.");
     }
 
@@ -63,7 +66,7 @@ public class GoalConsoleHandler {
      */
     public void deleteGoal() {
         System.out.println("Введите ID цели для удаления:");
-        UUID goalId = UUID.fromString(scanner.nextLine());
+        long goalId = Long.parseLong(scanner.nextLine());
 
         goalService.deleteGoal(goalId);
         System.out.println("Цель удалена.");

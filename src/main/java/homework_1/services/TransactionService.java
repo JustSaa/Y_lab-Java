@@ -21,7 +21,7 @@ public interface TransactionService {
     /**
      * Получение всех транзакций пользователя.
      */
-    List<Transaction> getTransactions(String userEmail);
+    List<Transaction> getTransactions(long userId);
 
     /**
      * Обновление существующей транзакции.
@@ -31,44 +31,44 @@ public interface TransactionService {
     /**
      * Удаление транзакции.
      */
-    void deleteTransaction(String userEmail, UUID transactionId);
+    void deleteTransaction(long userId, long transactionId);
 
     /**
      * Подсчет текущего баланса пользователя.
      */
-    double calculateBalance(String userEmail);
+    double calculateBalance(long userId);
 
     /**
      * Возвращает список транзакций пользователя за указанную дату.
      *
-     * @param email почта пользователя
-     * @param date  дата транзакции
+     * @param userId Id пользователя
+     * @param date   дата транзакции
      * @return список транзакций за указанную дату
      */
-    List<Transaction> getTransactionsByDate(String email, LocalDate date);
+    List<Transaction> getTransactionsByDate(long userId, LocalDate date);
 
     /**
      * Возвращает список транзакций пользователя по категории.
      *
-     * @param email    почта пользователя
+     * @param userId   Id пользователя
      * @param category категория транзакции
      * @return список транзакций указанной категории
      */
-    List<Transaction> getTransactionsByCategory(String email, Category category);
+    List<Transaction> getTransactionsByCategory(long userId, Category category);
 
     /**
      * Возвращает список транзакций пользователя по их типу (доход или расход).
      *
-     * @param email почта пользователя
-     * @param type  тип транзакции (доход или расход)
+     * @param userId Id пользователя
+     * @param type   тип транзакции (доход или расход)
      * @return список транзакций указанного типа
      */
-    List<Transaction> getTransactionsByType(String email, TransactionType type);
+    List<Transaction> getTransactionsByType(long userId, TransactionType type);
 
     /**
      * Проверка бюджета пользователя.
      *
-     * @param email почта пользователя
+     * @param userId Id пользователя
      */
-    boolean isBudgetExceeded(String email);
+    boolean isBudgetExceeded(long userId);
 }

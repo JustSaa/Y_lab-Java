@@ -22,11 +22,11 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     }
 
     @Override
-    public double getTotalIncome(String userEmail, String startDate, String endDate) {
+    public double getTotalIncome(long userId, String startDate, String endDate) {
         LocalDate start = LocalDate.parse(startDate);
         LocalDate end = LocalDate.parse(endDate);
 
-        return transactionRepository.findByUserEmail(userEmail).stream()
+        return transactionRepository.findByUserId(userId).stream()
                 .filter(t -> t.getType() == TransactionType.INCOME)
                 .filter(t -> !t.getDate().isBefore(start) && !t.getDate().isAfter(end))
                 .mapToDouble(Transaction::getAmount)
@@ -34,11 +34,11 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     }
 
     @Override
-    public double getTotalExpenses(String userEmail, String startDate, String endDate) {
+    public double getTotalExpenses(long userId, String startDate, String endDate) {
         LocalDate start = LocalDate.parse(startDate);
         LocalDate end = LocalDate.parse(endDate);
 
-        return transactionRepository.findByUserEmail(userEmail).stream()
+        return transactionRepository.findByUserId(userId).stream()
                 .filter(t -> t.getType() == TransactionType.EXPENSE)
                 .filter(t -> !t.getDate().isBefore(start) && !t.getDate().isAfter(end))
                 .mapToDouble(Transaction::getAmount)
@@ -46,8 +46,8 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     }
 
     @Override
-    public String analyzeExpensesByCategory(String userEmail) {
-        Map<Category, Double> expensesByCategory = transactionRepository.findByUserEmail(userEmail).stream()
+    public String analyzeExpensesByCategory(long userId) {
+        Map<Category, Double> expensesByCategory = transactionRepository.findByUserId(userId).stream()
                 .filter(t -> t.getType() == TransactionType.EXPENSE)
                 .collect(Collectors.groupingBy(Transaction::getCategory, Collectors.summingDouble(Transaction::getAmount)));
 
@@ -57,13 +57,13 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     }
 
     @Override
-    public String generateFinancialReport(String userEmail) {
-        double totalIncome = getTotalIncome(userEmail, "2000-01-01", LocalDate.now().toString());
-        double totalExpenses = getTotalExpenses(userEmail, "2000-01-01", LocalDate.now().toString());
+    public String generateFinancialReport(long userId) {
+        double totalIncome = getTotalIncome(userId, "2000-01-01", LocalDate.now().toString());
+        double totalExpenses = getTotalExpenses(userId, "2000-01-01", LocalDate.now().toString());
         double balance = totalIncome - totalExpenses;
-        String categoryReport = analyzeExpensesByCategory(userEmail);
+        String categoryReport = analyzeExpensesByCategory(userId);
 
-        return "Финансовый отчёт для " + userEmail + ":\n" +
+        return "Финансовый отчёт для пользователя с Id" + userId + ":\n" +
                 "Общий доход: " + totalIncome + "\n" +
                 "Общий расход: " + totalExpenses + "\n" +
                 "Текущий баланс: " + balance + "\n\n" +

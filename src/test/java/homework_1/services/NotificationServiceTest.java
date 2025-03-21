@@ -23,7 +23,7 @@ class NotificationServiceTest {
     private TransactionServiceImpl transactionServiceImpl;
     private BudgetService budgetService;
 
-    private final String testEmail = "test@mail.com";
+    private final long userId = 0;
 
     @BeforeEach
     void setUp() {
@@ -36,44 +36,46 @@ class NotificationServiceTest {
 
     @Test
     void sendNotification_ShouldBeCalled() {
-        notificationService.sendNotification(testEmail, "Тестовое уведомление.");
-        verify(notificationService, times(1)).sendNotification(eq(testEmail), eq("Тестовое уведомление."));
+        notificationService.sendNotification(userId, "Тестовое уведомление.");
+        verify(notificationService, times(1)).sendNotification(eq(userId), eq("Тестовое уведомление."));
     }
 
     @Test
     void sendNotification_WhenBudgetExceeded_ShouldBeTriggered() {
-        User user = new User("Тест", testEmail, "password");
-        Budget budget = new Budget(testEmail, 500);
+        long userId = 0;
 
-        when(budgetService.getUserBudget(testEmail)).thenReturn(Optional.of(budget));
-        when(transactionRepository.findByUserEmailAndType(testEmail, TransactionType.EXPENSE))
-                .thenReturn(List.of(new Transaction(testEmail, 600, TransactionType.EXPENSE, Category.FOOD, LocalDate.now(), "Еда")));
+        when(budgetService.getUserBudget(userId)).thenReturn(Optional.of(new Budget(userId, 500)));
 
-        Transaction transaction = new Transaction(testEmail, 200, TransactionType.EXPENSE, Category.TRANSPORT, LocalDate.now(), "Такси");
+        when(transactionRepository.findByUserIdAndType(0, TransactionType.EXPENSE))
+                .thenReturn(List.of(
+                        new Transaction(1L, userId, 600, TransactionType.EXPENSE, Category.FOOD, LocalDate.now(), "Еда")
+                ));
 
-        assertThatThrownBy(() -> transactionServiceImpl.createTransaction(transaction))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("Ваши расходы превышают установленный бюджет!");
+        Transaction transaction = new Transaction(2, userId, 200, TransactionType.EXPENSE, Category.TRANSPORT, LocalDate.now(), "Такси");
+
+        transactionServiceImpl.createTransaction(transaction);
 
         verify(notificationService, times(1))
-                .sendNotification(eq(testEmail), contains("Ваши расходы превысили установленный бюджет!"));
+                .sendNotification(eq(userId), contains("превысили установленный бюджет"));
+
+        verify(transactionRepository, never()).save(transaction);
     }
 
     @Test
     void sendNotification_WhenBudgetNotExceeded_ShouldNotBeTriggered() {
-        User user = new User("Тест", testEmail, "password");
-        Budget budget = new Budget(testEmail, 500);
+        User user = new User("Тест", "Тест@mail.ru", "password", UserRole.USER);
+        Budget budget = new Budget(user.getId(), 500);
 
-        when(budgetService.getUserBudget(testEmail)).thenReturn(Optional.of(budget));
+        when(budgetService.getUserBudget(user.getId())).thenReturn(Optional.of(budget));
 
-        when(transactionRepository.findByUserEmail(testEmail))
-                .thenReturn(List.of(new Transaction(testEmail, 600, TransactionType.EXPENSE, Category.FOOD, LocalDate.now(), "Еда")));
+        when(transactionRepository.findByUserId(user.getId()))
+                .thenReturn(List.of(new Transaction(1, user.getId(), 600, TransactionType.EXPENSE, Category.FOOD, LocalDate.now(), "Еда")));
 
-        Transaction transaction = new Transaction(testEmail, 200, TransactionType.EXPENSE, Category.TRANSPORT, LocalDate.now(), "Такси");
+        Transaction transaction = new Transaction(2, user.getId(), 200, TransactionType.EXPENSE, Category.TRANSPORT, LocalDate.now(), "Такси");
 
         transactionServiceImpl.createTransaction(transaction);
 
         verify(notificationService, never())
-                .sendNotification(anyString(), anyString());
+                .sendNotification(anyLong(), anyString());
     }
 }

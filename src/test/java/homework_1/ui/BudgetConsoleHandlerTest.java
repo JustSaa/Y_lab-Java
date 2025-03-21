@@ -1,6 +1,7 @@
 package homework_1.ui;
 
 import homework_1.domain.User;
+import homework_1.domain.UserRole;
 import homework_1.services.AuthService;
 import homework_1.services.BudgetService;
 import homework_1.services.TransactionService;
@@ -26,7 +27,7 @@ class BudgetConsoleHandlerTest {
         //transactionService = mock(TransactionService.class);
         budgetService = mock(BudgetService.class);
         budgetConsoleHandler = new BudgetConsoleHandler(budgetService, new Scanner(System.in));
-        user = new User("Тестовый Пользователь", "test@mail.com", "password123");
+        user = new User("Тестовый Пользователь", "test@mail.com", "password123", UserRole.USER);
     }
 
     @Test
@@ -39,7 +40,7 @@ class BudgetConsoleHandlerTest {
 
         handler.setBudget(user);
 
-        verify(budgetService, times(1)).setUserBudget("test@mail.com", 5000);
+        verify(budgetService, times(1)).setUserBudget(0, 5000);
     }
 
     @Test
@@ -51,31 +52,31 @@ class BudgetConsoleHandlerTest {
 
         handler.setBudget(user);
 
-        verify(budgetService, never()).setUserBudget(anyString(), anyDouble());
+        verify(budgetService, never()).setUserBudget(anyLong(), anyDouble());
     }
 
     @Test
     void checkBudget_ShouldNotify_WhenBudgetExceeded() {
-        when(budgetService.isBudgetExceeded("test@mail.com")).thenReturn(true);
+        when(budgetService.isBudgetExceeded(0)).thenReturn(true);
 
         budgetConsoleHandler.checkBudget(user);
 
-        verify(budgetService, times(1)).isBudgetExceeded("test@mail.com");
+        verify(budgetService, times(1)).isBudgetExceeded(0);
     }
 
     @Test
     void checkBudget_ShouldNotify_WhenBudgetNotExceeded() {
-        when(budgetService.isBudgetExceeded("test@mail.com")).thenReturn(false);
+        when(budgetService.isBudgetExceeded(0)).thenReturn(false);
 
         budgetConsoleHandler.checkBudget(user);
 
-        verify(budgetService, times(1)).isBudgetExceeded("test@mail.com");
+        verify(budgetService, times(1)).isBudgetExceeded(0);
     }
 
     @Test
     void checkBudget_ShouldShowError_WhenUserIsNull() {
         budgetConsoleHandler.checkBudget(null);
 
-        verify(budgetService, never()).isBudgetExceeded(anyString());
+        verify(budgetService, never()).isBudgetExceeded(anyLong());
     }
 }

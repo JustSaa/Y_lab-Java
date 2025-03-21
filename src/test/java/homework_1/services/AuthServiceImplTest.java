@@ -1,5 +1,6 @@
 package homework_1.services;
 
+import homework_1.domain.UserRole;
 import homework_1.repositories.UserRepository;
 import homework_1.common.exceptions.AuthenticationException;
 import homework_1.domain.User;
@@ -31,14 +32,14 @@ class AuthServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        user = new User("Иван Иванов", "ivan@mail.com", "password123");
+        user = new User("Иван Иванов", "ivan@mail.com", "password123", UserRole.USER);
     }
 
     @Test
     void register_NewUser_Success() {
         when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.empty());
 
-        User createdUser = authServiceImpl.register(user.getName(), user.getEmail(), user.getPassword());
+        User createdUser = authServiceImpl.register(user.getName(), user.getEmail(), user.getPassword(), UserRole.USER);
 
         assertThat(createdUser).isNotNull();
         assertThat(createdUser.getEmail()).isEqualTo(user.getEmail());
@@ -49,7 +50,7 @@ class AuthServiceImplTest {
     void register_ExistingEmail_ThrowsException() {
         when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
 
-        assertThatThrownBy(() -> authServiceImpl.register(user.getName(), user.getEmail(), user.getPassword()))
+        assertThatThrownBy(() -> authServiceImpl.register(user.getName(), user.getEmail(), user.getPassword(), UserRole.USER))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Пользователь с таким email уже существует");
 
@@ -89,7 +90,7 @@ class AuthServiceImplTest {
         when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
 
         authServiceImpl.updateUser(user.getEmail(), "Новый Иван",
-                "new@mail.com", "newpassword");
+                "new@mail.com", "newpassword", UserRole.USER);
 
         verify(userRepository).update(argThat(updatedUser ->
                 updatedUser.getName().equals("Новый Иван") &&
@@ -104,7 +105,7 @@ class AuthServiceImplTest {
 
         assertThatThrownBy(() ->
                 authServiceImpl.updateUser(user.getEmail(), "Новый Иван",
-                        "new@mail.com", "newpassword"))
+                        "new@mail.com", "newpassword", UserRole.ADMIN))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Пользователь не найден");
     }
@@ -138,8 +139,7 @@ class AuthServiceImplTest {
 
     @Test
     void blockUser_AsAdmin_ShouldBlockUser() {
-        User admin = new User("Admin", "admin@mail.com", "password");
-        admin.setAdmin(true);
+        User admin = new User("Admin", "admin@mail.com", "password", UserRole.ADMIN);
 
         when(userRepository.findByEmail(admin.getEmail())).thenReturn(Optional.of(admin));
 
@@ -150,8 +150,7 @@ class AuthServiceImplTest {
 
     @Test
     void deleteUser_AsAdmin_ShouldDeleteUser() {
-        User admin = new User("Admin", "admin@mail.com", "password");
-        admin.setAdmin(true);
+        User admin = new User("Admin", "admin@mail.com", "password", UserRole.ADMIN);
 
         when(userRepository.findByEmail(admin.getEmail())).thenReturn(Optional.of(admin));
 

@@ -28,27 +28,27 @@ class AnalyticsServiceTest {
 
     @Test
     void testGetTotalIncome() {
-        String email = "user@example.com";
-        when(transactionRepository.findByUserEmail(email)).thenReturn(List.of(
-                new Transaction(email, 1000, TransactionType.INCOME, Category.SALARY, LocalDate.of(2024, 6, 1), "Зарплата"),
-                new Transaction(email, 500, TransactionType.INCOME, Category.OTHER, LocalDate.of(2024, 8, 15), "Бонус")
+        long userId = 0;
+        when(transactionRepository.findByUserId(userId)).thenReturn(List.of(
+                new Transaction(1, userId, 1000, TransactionType.INCOME, Category.SALARY, LocalDate.of(2024, 6, 1), "Зарплата"),
+                new Transaction(2, userId, 500, TransactionType.INCOME, Category.OTHER, LocalDate.of(2024, 8, 15), "Бонус")
         ));
 
-        double totalIncome = analyticsService.getTotalIncome(email, "2024-01-01", "2024-12-31");
+        double totalIncome = analyticsService.getTotalIncome(userId, "2024-01-01", "2024-12-31");
 
         assertThat(totalIncome).isEqualTo(1500);
     }
 
     @Test
     void testAnalyzeExpensesByCategory() {
-        String email = "user@example.com";
-        when(transactionRepository.findByUserEmail(email)).thenReturn(List.of(
-                new Transaction(email, 300, TransactionType.EXPENSE, Category.FOOD, LocalDate.now(), "Обед"),
-                new Transaction(email, 200, TransactionType.EXPENSE, Category.TRANSPORT, LocalDate.now(), "Такси"),
-                new Transaction(email, 500, TransactionType.EXPENSE, Category.FOOD, LocalDate.now(), "Ужин")
+        long userId = 0;
+        when(transactionRepository.findByUserId(userId)).thenReturn(List.of(
+                new Transaction(1, userId, 300, TransactionType.EXPENSE, Category.FOOD, LocalDate.now(), "Обед"),
+                new Transaction(2, userId, 200, TransactionType.EXPENSE, Category.TRANSPORT, LocalDate.now(), "Такси"),
+                new Transaction(3, userId, 500, TransactionType.EXPENSE, Category.FOOD, LocalDate.now(), "Ужин")
         ));
 
-        String report = analyticsService.analyzeExpensesByCategory(email);
+        String report = analyticsService.analyzeExpensesByCategory(userId);
         assertThat(report).contains("FOOD: 800", "TRANSPORT: 200");
     }
 }

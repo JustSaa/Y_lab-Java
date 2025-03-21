@@ -13,7 +13,7 @@ public class InMemoryGoalRepository implements GoalRepository {
     /**
      * Хранит цели пользователей, привязанные к их уникальному идентификатору.
      */
-    private final Map<UUID, Goal> goals = new HashMap<>();
+    private final Map<Long, Goal> goals = new HashMap<>();
 
     /**
      * Сохраняет новую цель.
@@ -32,20 +32,33 @@ public class InMemoryGoalRepository implements GoalRepository {
      * @return {@link Optional}, содержащий цель, если она найдена
      */
     @Override
-    public Optional<Goal> findById(UUID goalId) {
+    public Optional<Goal> findById(long goalId) {
         return Optional.ofNullable(goals.get(goalId));
+    }
+
+    /**
+     * Ищет цель по её имени.
+     *
+     * @param name идентификатор цели
+     * @return {@link Optional}, содержащий цель, если она найдена
+     */
+    @Override
+    public Optional<Goal> findByName(String name) {
+        return goals.values().stream()
+                .filter(goal -> goal.getName().equals(name))
+                .findFirst();
     }
 
     /**
      * Возвращает список всех целей пользователя.
      *
-     * @param email почта пользователя
+     * @param userId Id пользователя
      * @return список целей пользователя
      */
     @Override
-    public List<Goal> findByUserEmail(String email) {
+    public List<Goal> findByUserId(long userId) {
         return goals.values().stream()
-                .filter(goal -> goal.getUserEmail().equals(email))
+                .filter(goal -> goal.getUserId() == (userId))
                 .toList();
     }
 
@@ -65,7 +78,7 @@ public class InMemoryGoalRepository implements GoalRepository {
      * @param goalId идентификатор цели
      */
     @Override
-    public void delete(UUID goalId) {
+    public void delete(long goalId) {
         goals.remove(goalId);
     }
 }

@@ -8,7 +8,7 @@ import homework_1.services.NotificationService;
 public class NotificationServiceImpl implements NotificationService {
 
     @Override
-    public void sendNotification(String userEmail, String message) {
-        System.out.println("Уведомление для " + userEmail + ": " + message);
+    public void sendNotification(long userId, String message) {
+        System.out.println("Уведомление для " + userId + ": " + message);
     }
 }

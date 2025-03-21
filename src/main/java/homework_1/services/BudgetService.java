@@ -12,24 +12,24 @@ public interface BudgetService {
     /**
      * Устанавливает бюджет для пользователя.
      *
-     * @param userEmail почта пользователя
-     * @param limit     сумма бюджета
+     * @param userId Id пользователя
+     * @param limit  сумма бюджета
      */
-    void setUserBudget(String userEmail, double limit);
+    void setUserBudget(long userId, double limit);
 
     /**
      * Получает текущий бюджет пользователя.
      *
-     * @param userEmail почта пользователя
+     * @param userId Id пользователя
      * @return объект бюджета (если установлен)
      */
-    Optional<Budget> getUserBudget(String userEmail);
+    Optional<Budget> getUserBudget(long userId);
 
     /**
      * Проверяет, превышен ли бюджет пользователя.
      *
-     * @param userEmail почта пользователя
+     * @param userId Id пользователя
      * @return true, если расходы превышают бюджет, иначе false
      */
-    boolean isBudgetExceeded(String userEmail);
+    boolean isBudgetExceeded(long userId);
 }

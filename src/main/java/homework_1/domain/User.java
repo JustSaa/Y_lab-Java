@@ -6,6 +6,7 @@ import java.util.Objects;
  * Сущность пользователя.
  */
 public class User {
+    long id;
     /**
      * Имя пользователя
      */
@@ -20,27 +21,42 @@ public class User {
      * Пароль пользователя
      */
     private String password;
-
     /**
-     * Является ли пользователь админом
+     * Роль пользователя
      */
-    private boolean isAdmin = false;
+    private UserRole role;
     /**
      * Заблокирован ли пользователь
      */
     private boolean isBlocked = false;
 
     /**
-     * Конструктор со всеми полями.
+     * Конструктор для создания нового пользователя (без ID).
      *
      * @param name     имя пользователя
      * @param email    email
      * @param password пароль
+     * @param role     Роль пользователя (например, ADMIN, USER)
      */
-    public User(String name, String email, String password) {
+    public User(String name, String email, String password, UserRole role) {
+        this.id = 0;
         this.name = name;
         this.email = email;
         this.password = password;
+        this.role = role;
+        this.isBlocked = false;
+    }
+
+    /**
+     * Конструктор для загрузки пользователя из БД.
+     */
+    public User(long id, String name, String email, String password, UserRole role, boolean isBlocked) {
+        this.id = id;
+        this.name = name;
+        this.email = email;
+        this.password = password;
+        this.role = role;
+        this.isBlocked = isBlocked;
     }
 
     public String getName() {
@@ -67,12 +83,12 @@ public class User {
         this.password = password;
     }
 
-    public boolean isAdmin() {
-        return isAdmin;
+    public UserRole getRole() {
+        return role;
     }
 
-    public void setAdmin(boolean admin) {
-        isAdmin = admin;
+    public void setRole(UserRole role) {
+        this.role = role;
     }
 
     public boolean isBlocked() {
@@ -83,16 +99,29 @@ public class User {
         isBlocked = blocked;
     }
 
+    public long getId() {
+        return id;
+    }
+
+    public void setId(long id) {
+        this.id = id;
+    }
+
+    /**
+     * Проверяет, является ли пользователь администратором.
+     *
+     * @return true, если у пользователя роль ADMIN.
+     */
+    public boolean isAdmin() {
+        return role == UserRole.ADMIN;
+    }
+
     @Override
     public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
         User user = (User) o;
-        return email.equals(user.email);
+        return id == user.id;
     }
 
     @Override
@@ -105,6 +134,7 @@ public class User {
         return "User{" +
                 "name='" + name + '\'' +
                 ", email='" + email + '\'' +
+                ", role=" + role +
                 '}';
     }
 }

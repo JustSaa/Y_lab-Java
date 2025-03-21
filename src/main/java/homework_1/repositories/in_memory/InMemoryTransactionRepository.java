@@ -14,9 +14,9 @@ import java.util.*;
 public class InMemoryTransactionRepository implements TransactionRepository {
 
     /**
-     * Хранение транзакций по Почте пользователя.
+     * Хранение транзакций по Id пользователя.
      */
-    private final Map<String, List<Transaction>> transactionsMap = new HashMap<>();
+    private final Map<Long, List<Transaction>> transactionsMap = new HashMap<>();
 
     /**
      * Сохраняет транзакцию в памяти.
@@ -26,34 +26,34 @@ public class InMemoryTransactionRepository implements TransactionRepository {
     @Override
     public void save(Transaction transaction) {
         transactionsMap
-                .computeIfAbsent(transaction.getUserEmail(), k -> new ArrayList<>())
+                .computeIfAbsent(transaction.getUserId(), k -> new ArrayList<>())
                 .add(transaction);
     }
 
     /**
      * Возвращает список транзакций пользователя.
      *
-     * @param userEmail почта пользователя
+     * @param userId Id пользователя
      * @return список транзакций
      */
     @Override
-    public List<Transaction> findByUserEmail(String userEmail) {
+    public List<Transaction> findByUserId(long userId) {
         return Collections.unmodifiableList(
-                transactionsMap.getOrDefault(userEmail, Collections.emptyList()));
+                transactionsMap.getOrDefault(userId, Collections.emptyList()));
     }
 
     /**
      * Поиск транзакции по идентификатору.
      *
-     * @param userEmail     почта пользователя
+     * @param userId        Id пользователя
      * @param transactionId ID транзакции
      * @return Optional транзакции
      */
     @Override
-    public Optional<Transaction> findById(String userEmail, UUID transactionId) {
-        return transactionsMap.getOrDefault(userEmail, List.of())
+    public Optional<Transaction> findById(long userId, long transactionId) {
+        return transactionsMap.getOrDefault(userId, List.of())
                 .stream()
-                .filter(transaction -> transaction.getId().equals(transactionId))
+                .filter(transaction -> transaction.getId() == (transactionId))
                 .findFirst();
     }
 
@@ -64,14 +64,14 @@ public class InMemoryTransactionRepository implements TransactionRepository {
      */
     @Override
     public void update(Transaction transaction) {
-        String userEmail = transaction.getUserEmail();
-        List<Transaction> transactions = transactionsMap.get(userEmail);
+        Long userId = transaction.getUserId();
+        List<Transaction> transactions = transactionsMap.get(userId);
         if (transactions == null) {
             return;
         }
 
         transactions.replaceAll(existingTransaction ->
-                existingTransaction.getId().equals(transaction.getId())
+                existingTransaction.getId() == (transaction.getId())
                         ? transaction
                         : existingTransaction
         );
@@ -80,25 +80,25 @@ public class InMemoryTransactionRepository implements TransactionRepository {
     /**
      * Удаляет транзакцию пользователя.
      *
-     * @param userEmail     почта пользователя
+     * @param userId        Id пользователя
      * @param transactionId ID транзакции
      */
     @Override
-    public void delete(String userEmail, UUID transactionId) {
-        transactionsMap.getOrDefault(userEmail, new ArrayList<>())
-                .removeIf(transaction -> transaction.getId().equals(transactionId));
+    public void delete(long userId, long transactionId) {
+        transactionsMap.getOrDefault(userId, new ArrayList<>())
+                .removeIf(transaction -> transaction.getId() == transactionId);
     }
 
     /**
      * Возвращает список транзакций пользователя за указанную дату.
      *
-     * @param email почта пользователя
-     * @param date  дата транзакции
+     * @param userId Id пользователя
+     * @param date   дата транзакции
      * @return список транзакций за указанную дату
      */
     @Override
-    public List<Transaction> findByUserEmailAndDate(String email, LocalDate date) {
-        return transactionsMap.getOrDefault(email, List.of())
+    public List<Transaction> findByUserIdAndDate(long userId, LocalDate date) {
+        return transactionsMap.getOrDefault(userId, List.of())
                 .stream()
                 .filter(t -> t.getDate().equals(date))
                 .toList();
@@ -107,13 +107,13 @@ public class InMemoryTransactionRepository implements TransactionRepository {
     /**
      * Возвращает список транзакций пользователя по категории.
      *
-     * @param email    почта пользователя
+     * @param userId   Id пользователя
      * @param category категория транзакции
      * @return список транзакций указанной категории
      */
     @Override
-    public List<Transaction> findByUserEmailAndCategory(String email, Category category) {
-        return transactionsMap.getOrDefault(email, List.of())
+    public List<Transaction> findByUserIdAndCategory(long userId, Category category) {
+        return transactionsMap.getOrDefault(userId, List.of())
                 .stream()
                 .filter(t -> t.getCategory().equals(category))
                 .toList();
@@ -122,13 +122,13 @@ public class InMemoryTransactionRepository implements TransactionRepository {
     /**
      * Возвращает список транзакций пользователя по их типу (доход или расход).
      *
-     * @param email почта пользователя
-     * @param type  тип транзакции (доход или расход)
+     * @param userId Id пользователя
+     * @param type   тип транзакции (доход или расход)
      * @return список транзакций указанного типа
      */
     @Override
-    public List<Transaction> findByUserEmailAndType(String email, TransactionType type) {
-        return transactionsMap.getOrDefault(email, List.of())
+    public List<Transaction> findByUserIdAndType(long userId, TransactionType type) {
+        return transactionsMap.getOrDefault(userId, List.of())
                 .stream()
                 .filter(t -> t.getType().equals(type))
                 .toList();

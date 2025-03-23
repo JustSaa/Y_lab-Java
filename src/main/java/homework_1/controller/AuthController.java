@@ -3,6 +3,7 @@ package homework_1.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import homework_1.common.exceptions.AuthenticationException;
 import homework_1.config.ConnectionManager;
+import homework_1.config.LiquibaseMigrationRunner;
 import homework_1.domain.User;
 import homework_1.dto.*;
 import homework_1.mapper.UserMapper;

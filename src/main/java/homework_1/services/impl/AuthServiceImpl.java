@@ -1,5 +1,7 @@
 package homework_1.services.impl;
 
+import homework_1.aspect.Audit;
+import homework_1.aspect.LogExecutionTime;
 import homework_1.domain.UserRole;
 import homework_1.repositories.UserRepository;
 import homework_1.common.exceptions.AuthenticationException;
@@ -29,6 +31,8 @@ public class AuthServiceImpl implements AuthService {
      * @param role     роль пользователя (например, ADMIN, USER)
      * @return созданный пользователь
      */
+    @Audit(action = "Регистрация нового пользователя")
+    @LogExecutionTime
     @Override
     public User register(String name, String email, String password, UserRole role) {
         Optional<User> existingUser = userRepository.findByEmail(email);

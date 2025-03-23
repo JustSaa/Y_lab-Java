@@ -2,18 +2,12 @@ package homework_1;
 
 import homework_1.config.ConnectionManager;
 import homework_1.config.LiquibaseMigrationRunner;
-import homework_1.repositories.BudgetRepository;
-import homework_1.repositories.GoalRepository;
-import homework_1.repositories.TransactionRepository;
-import homework_1.repositories.UserRepository;
+import homework_1.repositories.*;
 import homework_1.repositories.in_memory.InMemoryBudgetRepository;
 import homework_1.repositories.in_memory.InMemoryGoalRepository;
 import homework_1.repositories.in_memory.InMemoryTransactionRepository;
 import homework_1.repositories.in_memory.InMemoryUserRepository;
-import homework_1.repositories.jdbc.JdbcBudgetRepository;
-import homework_1.repositories.jdbc.JdbcGoalRepository;
-import homework_1.repositories.jdbc.JdbcTransactionRepository;
-import homework_1.repositories.jdbc.JdbcUserRepository;
+import homework_1.repositories.jdbc.*;
 import homework_1.services.*;
 import homework_1.services.impl.*;
 import homework_1.ui.ConsoleAdapter;
@@ -30,8 +24,9 @@ public class ApplicationDB {
         TransactionRepository transactionRepository = new JdbcTransactionRepository(connection);
         GoalRepository goalRepository = new JdbcGoalRepository(connection);
         BudgetRepository budgetRepository = new JdbcBudgetRepository(connection);
+        NotificationRepository notificationRepository = new JdbcNotificationRepository(connection);
 
-        NotificationService notificationService = new NotificationServiceImpl();
+        NotificationService notificationService = new NotificationServiceImpl(notificationRepository);
         BudgetService budgetService = new BudgetServiceImpl(budgetRepository, transactionRepository);
         AuthService authService = new AuthServiceImpl(userRepository);
         TransactionService transactionService = new TransactionServiceImpl(transactionRepository,

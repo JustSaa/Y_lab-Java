@@ -10,8 +10,10 @@ import homework_1.dto.TransactionRequestDto;
 import homework_1.dto.TransactionResponseDto;
 import homework_1.mapper.TransactionMapper;
 import homework_1.repositories.BudgetRepository;
+import homework_1.repositories.NotificationRepository;
 import homework_1.repositories.TransactionRepository;
 import homework_1.repositories.jdbc.JdbcBudgetRepository;
+import homework_1.repositories.jdbc.JdbcNotificationRepository;
 import homework_1.repositories.jdbc.JdbcTransactionRepository;
 import homework_1.services.BudgetService;
 import homework_1.services.NotificationService;
@@ -49,7 +51,8 @@ public class TransactionController extends HttpServlet {
             TransactionRepository repository = new JdbcTransactionRepository(connection);
             BudgetRepository budgetRepository = new JdbcBudgetRepository(connection);
             BudgetService budgetService = new BudgetServiceImpl(budgetRepository, repository);
-            NotificationService notificationService = new NotificationServiceImpl();
+            NotificationRepository notificationRepository = new JdbcNotificationRepository(connection);
+            NotificationService notificationService = new NotificationServiceImpl(notificationRepository);
 
             this.transactionService = new TransactionServiceImpl(repository, budgetService, notificationService);
         } catch (Exception e) {

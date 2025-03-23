@@ -1,5 +1,6 @@
 package homework_1.aspect;
 
+import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.*;
 import org.slf4j.Logger;
@@ -20,7 +21,8 @@ public class LoggingAspect {
     }
 
     @After("@annotation(audit)")
-    public void auditAction(Audit audit) {
-        logger.info("Аудит: {}", audit.action());
+    public void auditAction(JoinPoint joinPoint, Audit audit) {
+        String methodName = joinPoint.getSignature().getName();
+        logger.info("🛡️ Аудит: {} — Метод: {}", audit.action(), methodName);
     }
 }

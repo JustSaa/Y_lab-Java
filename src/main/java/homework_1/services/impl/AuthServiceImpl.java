@@ -54,6 +54,8 @@ public class AuthServiceImpl implements AuthService {
      * @return авторизованный пользователь
      * @throws AuthenticationException при ошибке авторизации
      */
+    @Audit(action = "Авторизация пользователя")
+    @LogExecutionTime
     @Override
     public User login(String email, String password) throws AuthenticationException {
         return userRepository.findByEmail(email)
@@ -70,6 +72,8 @@ public class AuthServiceImpl implements AuthService {
      * @param newPassword новый пароль
      * @throws IllegalArgumentException если пользователь не найден
      */
+    @Audit(action = "Обновление пользователя")
+    @LogExecutionTime
     public void updateUser(String email, String newName, String newEmail, String newPassword, UserRole newRole) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("Пользователь не найден"));
@@ -87,6 +91,8 @@ public class AuthServiceImpl implements AuthService {
      *
      * @param email электронная почта
      */
+    @Audit(action = "Удаление пользователя")
+    @LogExecutionTime
     public void deleteUser(String email) {
         if (userRepository.findByEmail(email).isEmpty()) {
             throw new IllegalArgumentException("Пользователь не найден.");
@@ -99,6 +105,8 @@ public class AuthServiceImpl implements AuthService {
      *
      * @return список пользователей
      */
+    @Audit(action = "Получить всех пользователей")
+    @LogExecutionTime
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }
@@ -109,6 +117,8 @@ public class AuthServiceImpl implements AuthService {
      * @param adminEmail email администратора
      * @param userEmail  email пользователя для блокировки
      */
+    @Audit(action = "Блокирование пользователя")
+    @LogExecutionTime
     public void blockUser(String adminEmail, String userEmail) {
         User admin = userRepository.findByEmail(adminEmail)
                 .orElseThrow(() -> new IllegalArgumentException("Администратор не найден"));
@@ -126,6 +136,8 @@ public class AuthServiceImpl implements AuthService {
      * @param adminEmail email администратора
      * @param userEmail  email пользователя для удаления
      */
+    @Audit(action = "Удаление пользователя администратором")
+    @LogExecutionTime
     public void deleteUser(String adminEmail, String userEmail) {
         User admin = userRepository.findByEmail(adminEmail)
                 .orElseThrow(() -> new IllegalArgumentException("Администратор не найден"));

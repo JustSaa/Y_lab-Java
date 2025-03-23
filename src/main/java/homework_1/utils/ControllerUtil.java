@@ -9,7 +9,7 @@ import jakarta.servlet.http.*;
 import java.io.IOException;
 import java.util.*;
 
-public class ValidationUtil {
+public class ControllerUtil {
 
     private static final Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
     private static final ObjectMapper objectMapper = new ObjectMapper();
@@ -21,10 +21,14 @@ public class ValidationUtil {
             for (ConstraintViolation<T> v : violations) {
                 errors.put(v.getPropertyPath().toString(), v.getMessage());
             }
-            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(resp.getOutputStream(), Map.of("errors", errors));
+            writeError(resp, HttpServletResponse.SC_BAD_REQUEST, errors);
             return false;
         }
         return true;
+    }
+
+    public static void writeError(HttpServletResponse resp, int status, Object message) throws IOException {
+        resp.setStatus(status);
+        objectMapper.writeValue(resp.getOutputStream(), Map.of("error", message));
     }
 }

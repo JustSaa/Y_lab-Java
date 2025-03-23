@@ -1,5 +1,7 @@
 package homework_1.services.impl;
 
+import homework_1.aspect.Audit;
+import homework_1.aspect.LogExecutionTime;
 import homework_1.domain.Goal;
 import homework_1.repositories.GoalRepository;
 import homework_1.services.GoalService;
@@ -25,6 +27,8 @@ public class GoalServiceImpl implements GoalService {
      * @param name         название цели
      * @param targetAmount сумма, которую нужно накопить
      */
+    @Audit(action = "Создать цель")
+    @LogExecutionTime
     public void createGoal(long userId, String name, double targetAmount) {
         if (targetAmount <= 0) {
             throw new IllegalArgumentException("Цель должна быть положительной.");
@@ -39,6 +43,8 @@ public class GoalServiceImpl implements GoalService {
      * @param userId Id пользователя
      * @return список целей
      */
+    @Audit(action = "Получить цель по ID пользователя")
+    @LogExecutionTime
     public List<Goal> getUserGoals(long userId) throws SQLException {
         return goalRepository.findByUserId(userId);
     }
@@ -49,6 +55,8 @@ public class GoalServiceImpl implements GoalService {
      * @param goalName название цели
      * @param amount   сумма для пополнения
      */
+    @Audit(action = "Обновить цель")
+    @LogExecutionTime
     public void addToGoal(String goalName, double amount) {
         goalRepository.findByName(goalName)
                 .ifPresentOrElse(goal -> {
@@ -66,6 +74,8 @@ public class GoalServiceImpl implements GoalService {
      *
      * @param goalId идентификатор цели
      */
+    @Audit(action = "Удалить цель по ID")
+    @LogExecutionTime
     public void deleteGoal(long goalId) {
         goalRepository.delete(goalId);
     }

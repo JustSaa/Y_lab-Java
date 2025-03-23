@@ -10,6 +10,7 @@ import homework_1.repositories.jdbc.JdbcGoalRepository;
 import homework_1.services.GoalService;
 import homework_1.services.impl.GoalServiceImpl;
 
+import homework_1.utils.ControllerUtil;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 import jakarta.validation.ConstraintViolation;
@@ -24,7 +25,6 @@ import java.util.*;
 public class GoalController extends HttpServlet {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private final Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
     private GoalService goalService;
 
     @Override
@@ -53,7 +53,7 @@ public class GoalController extends HttpServlet {
         if ("/add".equals(req.getPathInfo())) {
             handleAddToGoal(req, resp);
         } else {
-            writeError(resp, HttpServletResponse.SC_NOT_FOUND, "Неизвестный путь");
+            ControllerUtil.writeError(resp, HttpServletResponse.SC_NOT_FOUND, "Неизвестный путь");
         }
     }
 
@@ -64,21 +64,21 @@ public class GoalController extends HttpServlet {
 
     private void handleCreateGoal(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         CreateGoalDto dto = objectMapper.readValue(req.getInputStream(), CreateGoalDto.class);
-        if (!isValid(dto, resp)) return;
+        if (!ControllerUtil.validate(dto, resp)) return;
 
         try {
             goalService.createGoal(dto.getUserId(), dto.getName(), dto.getTargetAmount());
             resp.setStatus(HttpServletResponse.SC_CREATED);
             objectMapper.writeValue(resp.getOutputStream(), Map.of("message", "Цель создана"));
         } catch (IllegalArgumentException e) {
-            writeError(resp, HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
+            ControllerUtil.writeError(resp, HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
         }
     }
 
     private void handleGetGoals(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String pathInfo = req.getPathInfo();
         if (pathInfo == null || pathInfo.equals("/")) {
-            writeError(resp, HttpServletResponse.SC_BAD_REQUEST, "userId обязателен");
+            ControllerUtil.writeError(resp, HttpServletResponse.SC_BAD_REQUEST, "userId обязателен");
             return;
         }
 
@@ -88,26 +88,26 @@ public class GoalController extends HttpServlet {
             resp.setStatus(HttpServletResponse.SC_OK);
             objectMapper.writeValue(resp.getOutputStream(), goals);
         } catch (Exception e) {
-            writeError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Не удалось получить цели");
+            ControllerUtil.writeError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Не удалось получить цели");
         }
     }
 
     private void handleAddToGoal(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         AddToGoalDto dto = objectMapper.readValue(req.getInputStream(), AddToGoalDto.class);
-        if (!isValid(dto, resp)) return;
+        if (!ControllerUtil.validate(dto, resp)) return;
 
         try {
             goalService.addToGoal(dto.getGoalName(), dto.getAmount());
             objectMapper.writeValue(resp.getOutputStream(), Map.of("message", "Цель пополнена"));
         } catch (Exception e) {
-            writeError(resp, HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
+            ControllerUtil.writeError(resp, HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
         }
     }
 
     private void handleDeleteGoal(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String pathInfo = req.getPathInfo();
         if (pathInfo == null || pathInfo.split("/").length != 2) {
-            writeError(resp, HttpServletResponse.SC_BAD_REQUEST, "Неверный путь /{goalId}");
+            ControllerUtil.writeError(resp, HttpServletResponse.SC_BAD_REQUEST, "Неверный путь /{goalId}");
             return;
         }
 
@@ -116,25 +116,7 @@ public class GoalController extends HttpServlet {
             goalService.deleteGoal(goalId);
             resp.setStatus(HttpServletResponse.SC_NO_CONTENT);
         } catch (Exception e) {
-            writeError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Не удалось удалить цель");
+            ControllerUtil.writeError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Не удалось удалить цель");
         }
-    }
-
-    private <T> boolean isValid(T dto, HttpServletResponse resp) throws IOException {
-        Set<ConstraintViolation<T>> violations = validator.validate(dto);
-        if (!violations.isEmpty()) {
-            Map<String, String> errors = new HashMap<>();
-            for (ConstraintViolation<T> v : violations) {
-                errors.put(v.getPropertyPath().toString(), v.getMessage());
-            }
-            writeError(resp, HttpServletResponse.SC_BAD_REQUEST, errors);
-            return false;
-        }
-        return true;
-    }
-
-    private void writeError(HttpServletResponse resp, int status, Object message) throws IOException {
-        resp.setStatus(status);
-        objectMapper.writeValue(resp.getOutputStream(), Map.of("error", message));
     }
 }

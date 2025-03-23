@@ -11,9 +11,9 @@ import homework_1.repositories.jdbc.JdbcTransactionRepository;
 import homework_1.services.BudgetService;
 import homework_1.services.impl.BudgetServiceImpl;
 
+import homework_1.utils.ControllerUtil;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
-import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 
@@ -23,9 +23,7 @@ import java.util.*;
 
 @WebServlet("/api/budget/*")
 public class BudgetController extends HttpServlet {
-
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private final Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
     private BudgetService budgetService;
 
     @Override
@@ -50,7 +48,7 @@ public class BudgetController extends HttpServlet {
         String path = req.getPathInfo();
 
         if (path == null || path.equals("/")) {
-            writeError(resp, HttpServletResponse.SC_BAD_REQUEST, "userId обязателен");
+            ControllerUtil.writeError(resp, HttpServletResponse.SC_BAD_REQUEST, "userId обязателен");
             return;
         }
 
@@ -61,22 +59,20 @@ public class BudgetController extends HttpServlet {
         } else if (parts.length == 2 && "exceeded".equals(parts[1])) {
             handleCheckExceeded(resp, parts[0]);
         } else {
-            writeError(resp, HttpServletResponse.SC_BAD_REQUEST, "Неверный путь запроса");
+            ControllerUtil.writeError(resp, HttpServletResponse.SC_BAD_REQUEST, "Неверный путь запроса");
         }
     }
 
-    // === Handlers ===
-
     private void handleSetBudget(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         SetBudgetDto dto = objectMapper.readValue(req.getInputStream(), SetBudgetDto.class);
-        if (!isValid(dto, resp)) return;
+        if (!ControllerUtil.validate(dto, resp)) return;
 
         try {
             budgetService.setUserBudget(dto.getUserId(), dto.getLimit());
             resp.setStatus(HttpServletResponse.SC_CREATED);
             objectMapper.writeValue(resp.getOutputStream(), Map.of("message", "Бюджет установлен"));
         } catch (IllegalArgumentException e) {
-            writeError(resp, HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
+            ControllerUtil.writeError(resp, HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
         }
     }
 
@@ -89,10 +85,10 @@ public class BudgetController extends HttpServlet {
                 resp.setStatus(HttpServletResponse.SC_OK);
                 objectMapper.writeValue(resp.getOutputStream(), budget.get());
             } else {
-                writeError(resp, HttpServletResponse.SC_NOT_FOUND, "Бюджет не найден");
+                ControllerUtil.writeError(resp, HttpServletResponse.SC_NOT_FOUND, "Бюджет не найден");
             }
         } catch (NumberFormatException e) {
-            writeError(resp, HttpServletResponse.SC_BAD_REQUEST, "userId должен быть числом");
+            ControllerUtil.writeError(resp, HttpServletResponse.SC_BAD_REQUEST, "userId должен быть числом");
         }
     }
 
@@ -104,27 +100,7 @@ public class BudgetController extends HttpServlet {
             resp.setStatus(HttpServletResponse.SC_OK);
             objectMapper.writeValue(resp.getOutputStream(), Map.of("budgetExceeded", exceeded));
         } catch (NumberFormatException e) {
-            writeError(resp, HttpServletResponse.SC_BAD_REQUEST, "userId должен быть числом");
+            ControllerUtil.writeError(resp, HttpServletResponse.SC_BAD_REQUEST, "userId должен быть числом");
         }
-    }
-
-    // === Валидация и ошибка ===
-
-    private <T> boolean isValid(T dto, HttpServletResponse resp) throws IOException {
-        Set<ConstraintViolation<T>> violations = validator.validate(dto);
-        if (!violations.isEmpty()) {
-            Map<String, String> errors = new HashMap<>();
-            for (ConstraintViolation<T> v : violations) {
-                errors.put(v.getPropertyPath().toString(), v.getMessage());
-            }
-            writeError(resp, HttpServletResponse.SC_BAD_REQUEST, errors);
-            return false;
-        }
-        return true;
-    }
-
-    private void writeError(HttpServletResponse resp, int status, Object message) throws IOException {
-        resp.setStatus(status);
-        objectMapper.writeValue(resp.getOutputStream(), Map.of("error", message));
     }
 }

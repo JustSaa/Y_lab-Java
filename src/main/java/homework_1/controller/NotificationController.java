@@ -17,7 +17,6 @@ import java.util.Map;
 
 @WebServlet("/api/notifications/*")
 public class NotificationController extends HttpServlet {
-
     private final ObjectMapper objectMapper = new ObjectMapper();
     private NotificationRepository notificationRepository;
 

@@ -22,6 +22,7 @@ import homework_1.services.impl.BudgetServiceImpl;
 import homework_1.services.impl.NotificationServiceImpl;
 import homework_1.services.impl.TransactionServiceImpl;
 
+import homework_1.utils.ControllerUtil;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 import jakarta.validation.ConstraintViolation;
@@ -36,9 +37,7 @@ import java.util.*;
 
 @WebServlet("/api/transactions/*")
 public class TransactionController extends HttpServlet {
-
     private final ObjectMapper objectMapper = JacksonConfig.objectMapper();
-    private final Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
     private final TransactionMapper mapper = Mappers.getMapper(TransactionMapper.class);
     private TransactionService transactionService;
 
@@ -80,11 +79,9 @@ public class TransactionController extends HttpServlet {
         handleUpdateTransaction(req, resp);
     }
 
-    // --- Обработчики ---
-
     private void handleCreateTransaction(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         TransactionRequestDto dto = objectMapper.readValue(req.getInputStream(), TransactionRequestDto.class);
-        if (!isValid(dto, resp)) {
+        if (!ControllerUtil.validate(dto, resp)) {
             return;
         }
 
@@ -100,7 +97,7 @@ public class TransactionController extends HttpServlet {
         String pathInfo = req.getPathInfo();
 
         if (pathInfo == null || pathInfo.equals("/")) {
-            writeError(resp, HttpServletResponse.SC_BAD_REQUEST, "Нужен userId в URL: /api/transactions/{userId}");
+            ControllerUtil.writeError(resp, HttpServletResponse.SC_BAD_REQUEST, "Нужен userId в URL: /api/transactions/{userId}");
             return;
         }
 
@@ -112,14 +109,14 @@ public class TransactionController extends HttpServlet {
             resp.setStatus(HttpServletResponse.SC_OK);
             objectMapper.writeValue(resp.getOutputStream(), dtos);
         } catch (Exception e) {
-            writeError(resp, HttpServletResponse.SC_BAD_REQUEST, "Ошибка обработки запроса: " + e.getMessage());
+            ControllerUtil.writeError(resp, HttpServletResponse.SC_BAD_REQUEST, "Ошибка обработки запроса: " + e.getMessage());
         }
     }
 
     private void handleDeleteTransaction(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String[] parts = Optional.ofNullable(req.getPathInfo()).orElse("").split("/");
         if (parts.length != 3) {
-            writeError(resp, HttpServletResponse.SC_BAD_REQUEST, "Формат должен быть /userId/transactionId");
+            ControllerUtil.writeError(resp, HttpServletResponse.SC_BAD_REQUEST, "Формат должен быть /userId/transactionId");
             return;
         }
 
@@ -130,21 +127,21 @@ public class TransactionController extends HttpServlet {
             transactionService.deleteTransaction(userId, transactionId);
             resp.setStatus(HttpServletResponse.SC_NO_CONTENT);
         } catch (Exception e) {
-            writeError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Не удалось удалить транзакцию");
+            ControllerUtil.writeError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Не удалось удалить транзакцию");
         }
     }
 
     private void handleUpdateTransaction(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String[] parts = Optional.ofNullable(req.getPathInfo()).orElse("").split("/");
         if (parts.length != 2) {
-            writeError(resp, HttpServletResponse.SC_BAD_REQUEST, "Путь должен быть вида /{transactionId}");
+            ControllerUtil.writeError(resp, HttpServletResponse.SC_BAD_REQUEST, "Путь должен быть вида /{transactionId}");
             return;
         }
 
         try {
             long transactionId = Long.parseLong(parts[1]);
             TransactionRequestDto dto = objectMapper.readValue(req.getInputStream(), TransactionRequestDto.class);
-            if (!isValid(dto, resp)) {
+            if (!ControllerUtil.validate(dto, resp)) {
                 return;
             }
 
@@ -155,7 +152,7 @@ public class TransactionController extends HttpServlet {
             resp.setStatus(HttpServletResponse.SC_OK);
             objectMapper.writeValue(resp.getOutputStream(), Map.of("message", "Транзакция обновлена"));
         } catch (NumberFormatException e) {
-            writeError(resp, HttpServletResponse.SC_BAD_REQUEST, "ID транзакции должен быть числом");
+            ControllerUtil.writeError(resp, HttpServletResponse.SC_BAD_REQUEST, "ID транзакции должен быть числом");
         }
     }
 
@@ -173,26 +170,5 @@ public class TransactionController extends HttpServlet {
         } else {
             return transactionService.getTransactions(userId);
         }
-    }
-
-    // --- Вспомогательные методы ---
-
-    private <T> boolean isValid(T dto, HttpServletResponse resp) throws IOException {
-        Set<ConstraintViolation<T>> violations = validator.validate(dto);
-        if (!violations.isEmpty()) {
-            Map<String, String> errors = new HashMap<>();
-            for (ConstraintViolation<T> v : violations) {
-                errors.put(v.getPropertyPath().toString(), v.getMessage());
-            }
-            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(resp.getOutputStream(), Map.of("errors", errors));
-            return false;
-        }
-        return true;
-    }
-
-    private void writeError(HttpServletResponse resp, int status, String message) throws IOException {
-        resp.setStatus(status);
-        objectMapper.writeValue(resp.getOutputStream(), Map.of("error", message));
     }
 }

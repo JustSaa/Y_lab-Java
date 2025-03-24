@@ -19,8 +19,7 @@ public class AnalyticsController extends HttpServlet {
     private final ObjectMapper objectMapper = new ObjectMapper();
     private AnalyticsService analyticsService;
 
-    @Override
-    public void init() {
+    public AnalyticsController() {
         try {
             Class.forName("org.postgresql.Driver");
             Connection connection = ConnectionManager.getConnection();
@@ -29,6 +28,10 @@ public class AnalyticsController extends HttpServlet {
         } catch (Exception e) {
             throw new RuntimeException("Ошибка инициализации AnalyticsController", e);
         }
+    }
+
+    public AnalyticsController(AnalyticsService analyticsService) {
+        this.analyticsService = analyticsService;
     }
 
     @Override

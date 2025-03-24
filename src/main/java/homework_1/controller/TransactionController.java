@@ -41,8 +41,11 @@ public class TransactionController extends HttpServlet {
     private final TransactionMapper mapper = Mappers.getMapper(TransactionMapper.class);
     private TransactionService transactionService;
 
-    @Override
-    public void init() {
+    public TransactionController(TransactionService transactionService) {
+        this.transactionService = transactionService;
+    }
+
+    public TransactionController() {
         try {
             Class.forName("org.postgresql.Driver");
             Connection connection = ConnectionManager.getConnection();

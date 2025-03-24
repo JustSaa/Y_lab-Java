@@ -23,6 +23,9 @@ public class UserRegistrationDto {
         this.role = role;
     }
 
+    public UserRegistrationDto() {
+    }
+
     public String getName() {
         return name;
     }

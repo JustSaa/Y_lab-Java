@@ -4,6 +4,11 @@ public class AddToGoalDto {
     private String goalName;
     private double amount;
 
+    public AddToGoalDto(String goalName, double amount) {
+        this.goalName = goalName;
+        this.amount = amount;
+    }
+
     public String getGoalName() {
         return goalName;
     }

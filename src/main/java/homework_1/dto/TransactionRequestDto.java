@@ -26,6 +26,18 @@ public class TransactionRequestDto {
 
     private String description;
 
+    public TransactionRequestDto(Long userId, Double amount, TransactionType type, Category category, LocalDate date, String description) {
+        this.userId = userId;
+        this.amount = amount;
+        this.type = type;
+        this.category = category;
+        this.date = date;
+        this.description = description;
+    }
+
+    public TransactionRequestDto() {
+    }
+
     public Long getUserId() {
         return userId;
     }

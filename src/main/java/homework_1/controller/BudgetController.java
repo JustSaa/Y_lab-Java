@@ -26,8 +26,11 @@ public class BudgetController extends HttpServlet {
     private final ObjectMapper objectMapper = new ObjectMapper();
     private BudgetService budgetService;
 
-    @Override
-    public void init() {
+    public BudgetController(BudgetService budgetService) {
+        this.budgetService = budgetService;
+    }
+
+    public BudgetController() {
         try {
             Connection connection = ConnectionManager.getConnection();
             BudgetRepository budgetRepository = new JdbcBudgetRepository(connection);
@@ -65,7 +68,9 @@ public class BudgetController extends HttpServlet {
 
     private void handleSetBudget(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         SetBudgetDto dto = objectMapper.readValue(req.getInputStream(), SetBudgetDto.class);
-        if (!ControllerUtil.validate(dto, resp)) return;
+        if (!ControllerUtil.validate(dto, resp)) {
+            return;
+        }
 
         try {
             budgetService.setUserBudget(dto.getUserId(), dto.getLimit());

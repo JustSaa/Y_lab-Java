@@ -5,6 +5,12 @@ public class CreateGoalDto {
     private String name;
     private double targetAmount;
 
+    public CreateGoalDto(long userId, String name, double targetAmount) {
+        this.userId = userId;
+        this.name = name;
+        this.targetAmount = targetAmount;
+    }
+
     public long getUserId() {
         return userId;
     }

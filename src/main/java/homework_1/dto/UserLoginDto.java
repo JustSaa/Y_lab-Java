@@ -14,6 +14,9 @@ public class UserLoginDto {
         this.password = password;
     }
 
+    public UserLoginDto() {
+    }
+
     public String getEmail() {
         return email;
     }

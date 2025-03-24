@@ -31,6 +31,7 @@
         <jakarta.servlet.version>6.0.0</jakarta.servlet.version>
         <aspectj.version>1.9.21</aspectj.version>
         <hibernate.version>8.0.1.Final</hibernate.version>
+        <glassfish.version>4.0.2</glassfish.version>
     </properties>
 
     <dependencies>
@@ -157,6 +158,12 @@
             <groupId>org.hibernate.validator</groupId>
             <artifactId>hibernate-validator</artifactId>
             <version>${hibernate.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish</groupId>
+            <artifactId>jakarta.el</artifactId>
+            <version>${glassfish.version}</version>
+            <scope>test</scope>
         </dependency>
         <!-- AspectJ (AOP) -->
         <dependency>

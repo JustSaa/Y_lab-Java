@@ -27,8 +27,11 @@ public class GoalController extends HttpServlet {
     private final ObjectMapper objectMapper = new ObjectMapper();
     private GoalService goalService;
 
-    @Override
-    public void init() {
+    public GoalController(GoalService goalService) {
+        this.goalService = goalService;
+    }
+
+    public GoalController() {
         try {
             Connection connection = ConnectionManager.getConnection();
             GoalRepository goalRepository = new JdbcGoalRepository(connection);

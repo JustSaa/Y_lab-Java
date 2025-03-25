@@ -12,8 +12,6 @@ import jakarta.servlet.ServletInputStream;
 import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.validation.Validation;
-import jakarta.validation.Validator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -39,8 +37,7 @@ public class AuthControllerTest {
         objectMapper = new ObjectMapper();
         authService = mock(AuthService.class);
         userMapper = mock(UserMapper.class);
-        Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
-        controller = new AuthController(objectMapper, authService, userMapper, validator);
+        controller = new AuthController(authService);
 
         request = mock(HttpServletRequest.class);
         response = mock(HttpServletResponse.class);

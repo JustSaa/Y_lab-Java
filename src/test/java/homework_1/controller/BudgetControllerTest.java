@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import homework_1.domain.Budget;
 import homework_1.dto.SetBudgetDto;
 import homework_1.services.BudgetService;
-import homework_1.utils.ControllerUtil;
 import jakarta.servlet.ServletInputStream;
 import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServletRequest;
@@ -128,12 +127,12 @@ class BudgetControllerTest {
 
     @Test
     void testInvalidPath() throws Exception {
-        when(request.getPathInfo()).thenReturn("/invalid/path");
+        when(request.getPathInfo()).thenReturn("/1/unknown");
 
         controller.doGet(request, response);
 
         verify(response).setStatus(HttpServletResponse.SC_BAD_REQUEST);
-        assertTrue(outputStream.toString(StandardCharsets.UTF_8).contains("Неверный путь запроса"));
+        assertTrue(outputStream.toString(StandardCharsets.UTF_8).contains("Неизвестный путь запроса"));
     }
 
     private ServletInputStream toServletInputStream(Object dto) throws IOException {

@@ -11,6 +11,9 @@ public class CreateGoalDto {
         this.targetAmount = targetAmount;
     }
 
+    public CreateGoalDto() {
+    }
+
     public long getUserId() {
         return userId;
     }

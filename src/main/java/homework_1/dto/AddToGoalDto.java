@@ -9,6 +9,9 @@ public class AddToGoalDto {
         this.amount = amount;
     }
 
+    public AddToGoalDto() {
+    }
+
     public String getGoalName() {
         return goalName;
     }

@@ -31,4 +31,26 @@ public class ControllerUtil {
         resp.setStatus(status);
         objectMapper.writeValue(resp.getOutputStream(), Map.of("error", message));
     }
+
+    public static <T> T parseRequest(HttpServletRequest req, HttpServletResponse resp, ObjectMapper objectMapper, Validator validator, Class<T> dtoClass) throws IOException {
+        T dto = objectMapper.readValue(req.getInputStream(), dtoClass);
+        Set<ConstraintViolation<T>> violations = validator.validate(dto);
+
+        if (!violations.isEmpty()) {
+            writeError(resp, HttpServletResponse.SC_BAD_REQUEST, "Ошибка валидации");
+            return null;
+        }
+        return dto;
+    }
+
+    public static void writeSuccess(HttpServletResponse resp, Object data) throws IOException {
+        writeSuccess(resp, data, HttpServletResponse.SC_OK);
+    }
+
+    public static void writeSuccess(HttpServletResponse resp, Object data, int status) throws IOException {
+        resp.setStatus(status);
+        resp.setContentType("application/json");
+        new ObjectMapper().writeValue(resp.getOutputStream(), data);
+    }
+
 }

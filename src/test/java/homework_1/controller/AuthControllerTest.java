@@ -114,7 +114,6 @@ public class AuthControllerTest {
 
     @Test
     void testRegister_InvalidData() throws Exception {
-        // Пустое имя, email, пароль - невалидные данные
         UserRegistrationDto dto = new UserRegistrationDto("", "", "", null);
 
         when(request.getPathInfo()).thenReturn("/register");

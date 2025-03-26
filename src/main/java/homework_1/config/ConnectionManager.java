@@ -11,9 +11,7 @@ import java.util.Properties;
  * Класс для управления подключением к базе данных PostgreSQL.
  */
 public class ConnectionManager {
-
     private static final String PROPERTIES_FILE = "config.properties";
-
     private static String URL;
     private static String USER;
     private static String PASSWORD;

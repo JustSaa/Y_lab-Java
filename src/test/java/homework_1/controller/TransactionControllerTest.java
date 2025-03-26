@@ -6,7 +6,6 @@ import homework_1.domain.Category;
 import homework_1.domain.Transaction;
 import homework_1.domain.TransactionType;
 import homework_1.dto.TransactionRequestDto;
-import homework_1.dto.TransactionResponseDto;
 import homework_1.services.TransactionService;
 import jakarta.servlet.ServletInputStream;
 import jakarta.servlet.ServletOutputStream;
@@ -19,7 +18,6 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
@@ -120,7 +118,7 @@ class TransactionControllerTest {
         controller.doDelete(request, response);
 
         verify(response).setStatus(HttpServletResponse.SC_BAD_REQUEST);
-        assertTrue(outputStream.toString(StandardCharsets.UTF_8).contains("Формат должен быть /userId/transactionId"));
+        assertTrue(outputStream.toString(StandardCharsets.UTF_8).contains("Формат должен быть /transactions/{userId}/{transactionId}"));
     }
 
     @Test

@@ -1,32 +1,27 @@
 package homework_1.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import homework_1.config.ConnectionManager;
-import homework_1.repositories.TransactionRepository;
-import homework_1.repositories.jdbc.JdbcTransactionRepository;
+import homework_1.config.ServiceFactory;
 import homework_1.services.AnalyticsService;
-import homework_1.services.impl.AnalyticsServiceImpl;
 
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
+
 import java.io.IOException;
-import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.Map;
 
 @WebServlet("/api/analytics/*")
 public class AnalyticsController extends HttpServlet {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private AnalyticsService analyticsService;
+    private final AnalyticsService analyticsService;
 
     public AnalyticsController() {
         try {
-            Class.forName("org.postgresql.Driver");
-            Connection connection = ConnectionManager.getConnection();
-            TransactionRepository transactionRepository = new JdbcTransactionRepository(connection);
-            this.analyticsService = new AnalyticsServiceImpl(transactionRepository);
-        } catch (Exception e) {
-            throw new RuntimeException("Ошибка инициализации AnalyticsController", e);
+            this.analyticsService = ServiceFactory.getInstance().getAnalyticsService();
+        } catch (SQLException e) {
+            throw new RuntimeException("Ошибка при создании AnalyticsController: невозможно получить AnalyticsService", e);
         }
     }
 

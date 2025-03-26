@@ -1,7 +1,7 @@
 package homework_1.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import homework_1.common.exceptions.AuthenticationException;
+import homework_1.config.ServiceFactory;
 import homework_1.domain.User;
 import homework_1.dto.*;
 import homework_1.mapper.UserMapper;
@@ -11,11 +11,10 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.validation.Validation;
-import jakarta.validation.Validator;
 import org.mapstruct.factory.Mappers;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 
@@ -23,8 +22,17 @@ import java.util.Map;
 public class AuthController extends HttpServlet {
     private final AuthService authService;
     private final UserMapper userMapper = Mappers.getMapper(UserMapper.class);
+
     public AuthController(AuthService authService) {
         this.authService = authService;
+    }
+
+    public AuthController() {
+        try {
+            this.authService = ServiceFactory.getInstance().getAuthService();
+        } catch (SQLException e) {
+            throw new RuntimeException("Ошибка при создании AuthController: невозможно получить authService", e);
+        }
     }
 
     @Override

@@ -1,5 +1,6 @@
 package homework_1.controller;
 
+import homework_1.config.ServiceFactory;
 import homework_1.domain.Goal;
 import homework_1.dto.AddToGoalDto;
 import homework_1.dto.CreateGoalDto;
@@ -9,6 +10,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 
@@ -18,6 +20,14 @@ public class GoalController extends HttpServlet {
 
     public GoalController(GoalService goalService) {
         this.goalService = goalService;
+    }
+
+    public GoalController() {
+        try {
+            this.goalService = ServiceFactory.getInstance().getGoalService();
+        } catch (SQLException e) {
+            throw new RuntimeException("Ошибка при создании GoalController: невозможно получить goalService", e);
+        }
     }
 
     @Override

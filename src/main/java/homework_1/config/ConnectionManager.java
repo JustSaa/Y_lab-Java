@@ -1,9 +1,11 @@
 package homework_1.config;
 
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Properties;
 
@@ -12,35 +14,50 @@ import java.util.Properties;
  */
 public class ConnectionManager {
     private static final String PROPERTIES_FILE = "config.properties";
-    private static String URL;
-    private static String USER;
-    private static String PASSWORD;
+    private static HikariDataSource dataSource;
 
     static {
-        loadProperties();
+        loadDataSource();
     }
 
     /**
-     * Загружает параметры подключения к базе данных из конфигурационного файла.
-     * В случае ошибки выбрасывает {@link RuntimeException}.
+     * Загружает параметры подключения к базе данных из конфигурационного файла
+     * и настраивает пул соединений HikariCP.
      */
-    private static void loadProperties() {
-        try (InputStream input = ConnectionManager.class.getClassLoader()
-                .getResourceAsStream(PROPERTIES_FILE)) {
+    private static void loadDataSource() {
+        try (InputStream input = ConnectionManager.class.getClassLoader().getResourceAsStream(PROPERTIES_FILE)) {
             Properties properties = new Properties();
             properties.load(input);
-            URL = properties.getProperty("db.url");
-            USER = properties.getProperty("db.username");
-            PASSWORD = properties.getProperty("db.password");
+
+            HikariConfig config = new HikariConfig();
+            config.setJdbcUrl(properties.getProperty("db.url"));
+            config.setUsername(properties.getProperty("db.username"));
+            config.setPassword(properties.getProperty("db.password"));
+            config.setMaximumPoolSize(6);
+            config.setMinimumIdle(2);
+            config.setIdleTimeout(30000);
+            config.setMaxLifetime(1800000);
+            config.setConnectionTimeout(10000);
+
+            dataSource = new HikariDataSource(config);
         } catch (IOException e) {
             throw new RuntimeException("Ошибка загрузки конфигурации", e);
         }
     }
 
     /**
-     * Получает соединение с базой данных.
+     * Получает соединение с базы данных из пула.
      */
     public static Connection getConnection() throws SQLException {
-        return DriverManager.getConnection(URL, USER, PASSWORD);
+        return dataSource.getConnection();
+    }
+
+    /**
+     * Закрывает пул соединений.
+     */
+    public static void close() {
+        if (dataSource != null) {
+            dataSource.close();
+        }
     }
 }

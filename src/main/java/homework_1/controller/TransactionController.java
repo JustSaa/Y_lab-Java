@@ -2,6 +2,7 @@ package homework_1.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import homework_1.config.JacksonConfig;
+import homework_1.config.ServiceFactory;
 import homework_1.domain.Category;
 import homework_1.domain.Transaction;
 import homework_1.domain.TransactionType;
@@ -15,6 +16,7 @@ import jakarta.servlet.http.*;
 import org.mapstruct.factory.Mappers;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
@@ -27,6 +29,14 @@ public class TransactionController extends HttpServlet {
 
     public TransactionController(TransactionService transactionService) {
         this.transactionService = transactionService;
+    }
+
+    public TransactionController() {
+        try {
+            this.transactionService = ServiceFactory.getInstance().getTransactionService();
+        } catch (SQLException e) {
+            throw new RuntimeException("Ошибка при создании TransactionController: невозможно получить transactionService", e);
+        }
     }
 
     @Override

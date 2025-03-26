@@ -1,21 +1,15 @@
 package homework_1.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import homework_1.config.ConnectionManager;
+import homework_1.config.ServiceFactory;
 import homework_1.domain.Budget;
 import homework_1.dto.SetBudgetDto;
-import homework_1.repositories.BudgetRepository;
-import homework_1.repositories.TransactionRepository;
-import homework_1.repositories.jdbc.JdbcBudgetRepository;
-import homework_1.repositories.jdbc.JdbcTransactionRepository;
 import homework_1.services.BudgetService;
-import homework_1.services.impl.BudgetServiceImpl;
 import homework_1.utils.ControllerUtil;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 
 import java.io.IOException;
-import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.Map;
 import java.util.Optional;
 
@@ -29,12 +23,9 @@ public class BudgetController extends HttpServlet {
 
     public BudgetController() {
         try {
-            Connection connection = ConnectionManager.getConnection();
-            BudgetRepository budgetRepository = new JdbcBudgetRepository(connection);
-            TransactionRepository transactionRepository = new JdbcTransactionRepository(connection);
-            this.budgetService = new BudgetServiceImpl(budgetRepository, transactionRepository);
-        } catch (Exception e) {
-            throw new RuntimeException("Ошибка инициализации BudgetController", e);
+            this.budgetService = ServiceFactory.getInstance().getBudgetService();
+        } catch (SQLException e) {
+            throw new RuntimeException("Ошибка при создании BudgetController: невозможно получить budgetService", e);
         }
     }
 
@@ -71,7 +62,8 @@ public class BudgetController extends HttpServlet {
             switch (action) {
                 case "exceeded" -> handleCheckExceeded(resp, userId);
                 case "" -> handleGetBudget(resp, userId);
-                default -> ControllerUtil.writeError(resp, HttpServletResponse.SC_BAD_REQUEST, "Неизвестный путь запроса: " + path);
+                default ->
+                        ControllerUtil.writeError(resp, HttpServletResponse.SC_BAD_REQUEST, "Неизвестный путь запроса: " + path);
             }
         } catch (NumberFormatException e) {
             ControllerUtil.writeError(resp, HttpServletResponse.SC_BAD_REQUEST, "userId должен быть числом");

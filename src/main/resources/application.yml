@@ -1,0 +1,6 @@
+db:
+  url: jdbc:postgresql://localhost:5432/finance_db?currentSchema=public
+  username: finance_user
+  password: finance_pass
+changelog:
+  file: db/changelog/db.changelog-master.xml

@@ -9,7 +9,6 @@ import java.util.regex.Pattern;
  * Класс для валидации пользовательского ввода.
  */
 public class Validator {
-
     private static final Pattern EMAIL_PATTERN =
             Pattern.compile("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$");
 

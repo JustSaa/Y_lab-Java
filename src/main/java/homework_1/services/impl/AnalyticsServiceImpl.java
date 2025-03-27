@@ -1,5 +1,7 @@
 package homework_1.services.impl;
 
+import homework_1.aspect.Audit;
+import homework_1.aspect.LogExecutionTime;
 import homework_1.domain.Transaction;
 import homework_1.domain.TransactionType;
 import homework_1.domain.Category;
@@ -21,6 +23,8 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         this.transactionRepository = transactionRepository;
     }
 
+    @Audit(action = "Получить суммарный доход")
+    @LogExecutionTime
     @Override
     public double getTotalIncome(long userId, String startDate, String endDate) {
         LocalDate start = LocalDate.parse(startDate);
@@ -33,6 +37,8 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                 .sum();
     }
 
+    @Audit(action = "Получить суммарный расход")
+    @LogExecutionTime
     @Override
     public double getTotalExpenses(long userId, String startDate, String endDate) {
         LocalDate start = LocalDate.parse(startDate);
@@ -45,6 +51,8 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                 .sum();
     }
 
+    @Audit(action = "Анализ расходов по категориям")
+    @LogExecutionTime
     @Override
     public String analyzeExpensesByCategory(long userId) {
         Map<Category, Double> expensesByCategory = transactionRepository.findByUserId(userId).stream()
@@ -56,6 +64,8 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         return report.toString();
     }
 
+    @Audit(action = "Финансовый отчёт для пользователя")
+    @LogExecutionTime
     @Override
     public String generateFinancialReport(long userId) {
         double totalIncome = getTotalIncome(userId, "2000-01-01", LocalDate.now().toString());

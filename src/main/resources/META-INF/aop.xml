@@ -1,0 +1,5 @@
+<aspectj>
+    <aspects>
+        <aspect name="homework_1.aspect.LoggingAspect"/>
+    </aspects>
+</aspectj>

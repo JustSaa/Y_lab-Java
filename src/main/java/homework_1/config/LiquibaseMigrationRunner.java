@@ -49,7 +49,6 @@ public class LiquibaseMigrationRunner {
             } catch (Exception e) {
                 throw new RuntimeException("Ошибка выполнения миграций Liquibase", e);
             }
-
         } catch (IOException e) {
             throw new RuntimeException("Ошибка загрузки config.properties", e);
         }

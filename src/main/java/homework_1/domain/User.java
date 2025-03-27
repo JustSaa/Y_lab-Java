@@ -58,7 +58,8 @@ public class User {
         this.role = role;
         this.isBlocked = isBlocked;
     }
-
+    public User() {
+    }
     public String getName() {
         return name;
     }

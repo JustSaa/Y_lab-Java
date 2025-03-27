@@ -1,5 +1,7 @@
 package homework_1.services.impl;
 
+import homework_1.aspect.Audit;
+import homework_1.aspect.LogExecutionTime;
 import homework_1.domain.Budget;
 import homework_1.domain.Category;
 import homework_1.domain.Transaction;
@@ -12,7 +14,6 @@ import homework_1.services.TransactionService;
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
-import java.util.UUID;
 
 /**
  * Реализация сервиса управления транзакциями.
@@ -43,6 +44,8 @@ public class TransactionServiceImpl implements TransactionService {
      *
      * @param transaction транзакция
      */
+    @Audit(action = "Создание транзакции")
+    @LogExecutionTime
     @Override
     public void createTransaction(Transaction transaction) {
         double totalExpenses = transactionRepository.findByUserIdAndType(transaction.getUserId(), TransactionType.EXPENSE)
@@ -62,21 +65,29 @@ public class TransactionServiceImpl implements TransactionService {
         transactionRepository.save(transaction);
     }
 
+    @Audit(action = "Получить транзакцию по ID")
+    @LogExecutionTime
     @Override
     public List<Transaction> getTransactions(long userId) {
         return Collections.unmodifiableList(transactionRepository.findByUserId(userId));
     }
 
+    @Audit(action = "Обновить транзакцию")
+    @LogExecutionTime
     @Override
     public void updateTransaction(Transaction transaction) {
         transactionRepository.update(transaction);
     }
 
+    @Audit(action = "Удалить транзакцию")
+    @LogExecutionTime
     @Override
     public void deleteTransaction(long userId, long transactionId) {
         transactionRepository.delete(userId, transactionId);
     }
 
+    @Audit(action = "Получить баланс")
+    @LogExecutionTime
     @Override
     public double calculateBalance(long userId) {
         List<Transaction> transactions = transactionRepository.findByUserId(userId);
@@ -85,16 +96,22 @@ public class TransactionServiceImpl implements TransactionService {
                 .sum();
     }
 
+    @Audit(action = "Получить баланс по дате")
+    @LogExecutionTime
     @Override
     public List<Transaction> getTransactionsByDate(long userId, LocalDate date) {
         return transactionRepository.findByUserIdAndDate(userId, date);
     }
 
+    @Audit(action = "Получить баланс по категории")
+    @LogExecutionTime
     @Override
     public List<Transaction> getTransactionsByCategory(long userId, Category category) {
         return transactionRepository.findByUserIdAndCategory(userId, category);
     }
 
+    @Audit(action = "Получить баланс по типу")
+    @LogExecutionTime
     @Override
     public List<Transaction> getTransactionsByType(long userId, TransactionType type) {
         return transactionRepository.findByUserIdAndType(userId, type);

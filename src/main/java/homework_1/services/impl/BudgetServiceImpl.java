@@ -1,5 +1,7 @@
 package homework_1.services.impl;
 
+import homework_1.aspect.Audit;
+import homework_1.aspect.LogExecutionTime;
 import homework_1.domain.Budget;
 import homework_1.domain.Transaction;
 import homework_1.domain.TransactionType;
@@ -22,6 +24,8 @@ public class BudgetServiceImpl implements BudgetService {
         this.transactionRepository = transactionRepository;
     }
 
+    @Audit(action = "Установить бюджет")
+    @LogExecutionTime
     @Override
     public void setUserBudget(long userId, double limit) {
         if (limit <= 0) {
@@ -30,11 +34,15 @@ public class BudgetServiceImpl implements BudgetService {
         budgetRepository.save(new Budget(userId, limit));
     }
 
+    @Audit(action = "Получить бюджет пользователя по ID")
+    @LogExecutionTime
     @Override
     public Optional<Budget> getUserBudget(long userId) {
         return budgetRepository.findByUserId(userId);
     }
 
+    @Audit(action = "Проверить бюджет пользователя")
+    @LogExecutionTime
     @Override
     public boolean isBudgetExceeded(long userId) {
         Optional<Budget> budgetOpt = budgetRepository.findByUserId(userId);

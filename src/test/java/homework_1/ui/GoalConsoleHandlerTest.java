@@ -3,6 +3,7 @@ package homework_1.ui;
 import homework_1.domain.Goal;
 import homework_1.domain.User;
 import homework_1.domain.UserRole;
+import homework_1.services.GoalService;
 import homework_1.services.impl.GoalServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,22 +18,23 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 class GoalConsoleHandlerTest {
-    private GoalServiceImpl goalServiceImpl;
+    private GoalService goalServiceImpl;
     private Scanner scanner;
     private GoalConsoleHandler goalConsoleHandler;
     private User testUser;
 
     @BeforeEach
     void setUp() {
-        goalServiceImpl = mock(GoalServiceImpl.class);
-        scanner = mock(Scanner.class);
-        goalConsoleHandler = new GoalConsoleHandler(goalServiceImpl, scanner);
+        goalServiceImpl = mock(GoalService.class);
         testUser = new User("Иван Иванов", "test@example.com", "password123", UserRole.USER);
     }
 
     @Test
     void createGoal_ShouldCreateGoal_WhenInputIsValid() {
-        when(scanner.nextLine()).thenReturn("Машина", "100000");
+        String input = "Машина\n100000\n";
+        System.setIn(new java.io.ByteArrayInputStream(input.getBytes()));
+        scanner = new Scanner(System.in);
+        goalConsoleHandler = new GoalConsoleHandler(goalServiceImpl, scanner);
 
         goalConsoleHandler.createGoal(testUser);
 
@@ -53,6 +55,7 @@ class GoalConsoleHandlerTest {
                 new Goal(testUser.getId(), "Машина", 100000),
                 new Goal(testUser.getId(), "Отпуск", 50000)
         );
+        goalConsoleHandler = new GoalConsoleHandler(goalServiceImpl, scanner);
         when(goalServiceImpl.getUserGoals(testUser.getId())).thenReturn(goals);
 
         goalConsoleHandler.showGoals(testUser);
@@ -62,21 +65,25 @@ class GoalConsoleHandlerTest {
 
     @Test
     void addToGoal_ShouldAddToGoal_WhenInputIsValid() {
-        String goalName = "Car";
-        when(scanner.nextLine()).thenReturn(goalName, "20000");
+        String input = "Car\n20000\n";
+        System.setIn(new java.io.ByteArrayInputStream(input.getBytes()));
+        scanner = new Scanner(System.in);
+        goalConsoleHandler = new GoalConsoleHandler(goalServiceImpl, scanner);
 
         goalConsoleHandler.addToGoal();
 
-        verify(goalServiceImpl, times(1)).addToGoal(goalName, 20000);
+        verify(goalServiceImpl, times(1)).addToGoal("Car", 20000);
     }
 
     @Test
     void deleteGoal_ShouldDeleteGoal_WhenInputIsValid() {
-        long goalId = 1L;
-        when(scanner.nextLine()).thenReturn(String.valueOf(goalId));
+        String input = "1\n";
+        System.setIn(new java.io.ByteArrayInputStream(input.getBytes()));
+        scanner = new Scanner(System.in);
+        goalConsoleHandler = new GoalConsoleHandler(goalServiceImpl, scanner);
 
         goalConsoleHandler.deleteGoal();
 
-        verify(goalServiceImpl, times(1)).deleteGoal(goalId);
+        verify(goalServiceImpl, times(1)).deleteGoal(1L);
     }
 }

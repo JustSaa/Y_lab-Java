@@ -2,6 +2,7 @@ package homework_1.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import homework_1.config.ServiceFactory;
+import homework_1.handler.AnalyticsRequestHandler;
 import homework_1.services.AnalyticsService;
 
 import jakarta.servlet.annotation.WebServlet;
@@ -15,37 +16,31 @@ import java.util.Map;
 public class AnalyticsController extends HttpServlet {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private final AnalyticsService analyticsService;
+    private final AnalyticsRequestHandler requestHandler;
 
     public AnalyticsController() {
         try {
-            this.analyticsService = ServiceFactory.getInstance().getAnalyticsService();
+            AnalyticsService analyticsService = ServiceFactory.getInstance().getAnalyticsService();
+            this.requestHandler = new AnalyticsRequestHandler(analyticsService);
         } catch (SQLException e) {
             throw new RuntimeException("Ошибка при создании AnalyticsController: невозможно получить AnalyticsService", e);
         }
     }
 
-    public AnalyticsController(AnalyticsService analyticsService) {
-        this.analyticsService = analyticsService;
+    public AnalyticsController(AnalyticsRequestHandler requestHandler) {
+        this.requestHandler = requestHandler;
     }
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        String[] parts = req.getPathInfo().split("/");
-        if (parts.length < 3) {
-            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(resp.getOutputStream(), Map.of("error", "Неверный путь запроса"));
+        String[] parts = getPathParts(req);
+        if (parts == null) {
+            sendErrorResponse(resp, HttpServletResponse.SC_BAD_REQUEST, "Неверный путь запроса");
             return;
         }
 
-        long userId;
-        try {
-            userId = Long.parseLong(parts[1]);
-        } catch (NumberFormatException e) {
-            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(resp.getOutputStream(), Map.of("error", "userId должен быть числом"));
-            return;
-        }
+        long userId = parseUserId(parts[1], resp);
+        if (userId == -1) return;
 
         String action = parts[2];
         String start = req.getParameter("start");
@@ -53,31 +48,36 @@ public class AnalyticsController extends HttpServlet {
 
         try {
             switch (action) {
-                case "income" -> {
-                    double income = analyticsService.getTotalIncome(userId, start, end);
-                    objectMapper.writeValue(resp.getOutputStream(), Map.of("income", income));
-                }
-                case "expenses" -> {
-                    double expenses = analyticsService.getTotalExpenses(userId, start, end);
-                    objectMapper.writeValue(resp.getOutputStream(), Map.of("expenses", expenses));
-                }
-                case "categories" -> {
-                    String report = analyticsService.analyzeExpensesByCategory(userId);
-                    objectMapper.writeValue(resp.getOutputStream(), Map.of("categoryReport", report));
-                }
-                case "report" -> {
-                    String fullReport = analyticsService.generateFinancialReport(userId);
-                    objectMapper.writeValue(resp.getOutputStream(), Map.of("report", fullReport));
-                }
-                default -> {
-                    resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                    objectMapper.writeValue(resp.getOutputStream(), Map.of("error", "Неизвестное действие: " + action));
-                }
+                case "income" -> requestHandler.handleIncomeRequest(userId, start, end, resp);
+                case "expenses" -> requestHandler.handleExpensesRequest(userId, start, end, resp);
+                case "categories" -> requestHandler.handleCategoriesRequest(userId, resp);
+                case "report" -> requestHandler.handleReportRequest(userId, resp);
+                default -> requestHandler.handleUnknownAction(action, resp);
             }
-            resp.setStatus(HttpServletResponse.SC_OK);
         } catch (Exception e) {
-            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            objectMapper.writeValue(resp.getOutputStream(), Map.of("error", e.getMessage()));
+            sendErrorResponse(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
         }
+    }
+
+    private String[] getPathParts(HttpServletRequest req) {
+        String pathInfo = req.getPathInfo();
+        if (pathInfo == null || pathInfo.split("/").length < 3) {
+            return null;
+        }
+        return pathInfo.split("/");
+    }
+
+    private long parseUserId(String userIdStr, HttpServletResponse resp) throws IOException {
+        try {
+            return Long.parseLong(userIdStr);
+        } catch (NumberFormatException e) {
+            sendErrorResponse(resp, HttpServletResponse.SC_BAD_REQUEST, "userId должен быть числом");
+            return -1;
+        }
+    }
+
+    private void sendErrorResponse(HttpServletResponse resp, int status, String message) throws IOException {
+        resp.setStatus(status);
+        objectMapper.writeValue(resp.getOutputStream(), Map.of("error", message));
     }
 }

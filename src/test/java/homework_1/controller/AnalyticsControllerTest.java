@@ -1,6 +1,7 @@
 package homework_1.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import homework_1.handler.AnalyticsRequestHandler;
 import homework_1.services.AnalyticsService;
 import jakarta.servlet.ServletInputStream;
 import jakarta.servlet.ServletOutputStream;
@@ -27,7 +28,7 @@ class AnalyticsControllerTest {
     @BeforeEach
     void setUp() throws IOException {
         analyticsService = mock(AnalyticsService.class);
-        controller = new AnalyticsController(analyticsService);
+        controller = new AnalyticsController((AnalyticsRequestHandler) analyticsService);
 
         request = mock(HttpServletRequest.class);
         response = mock(HttpServletResponse.class);

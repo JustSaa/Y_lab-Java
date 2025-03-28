@@ -17,7 +17,7 @@ public interface GoalService {
      * @param name         название цели
      * @param targetAmount сумма, которую нужно накопить
      */
-    void createGoal(long userId, String name, double targetAmount);
+    Goal createGoal(long userId, String name, double targetAmount);
 
     /**
      * Возвращает все цели пользователя.

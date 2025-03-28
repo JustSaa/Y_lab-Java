@@ -5,6 +5,7 @@ import homework_1.aspect.LogExecutionTime;
 import homework_1.domain.Goal;
 import homework_1.repositories.GoalRepository;
 import homework_1.services.GoalService;
+import org.springframework.stereotype.Service;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -12,6 +13,7 @@ import java.util.List;
 /**
  * Сервис управления финансовыми целями.
  */
+@Service
 public class GoalServiceImpl implements GoalService {
 
     private final GoalRepository goalRepository;
@@ -29,12 +31,13 @@ public class GoalServiceImpl implements GoalService {
      */
     @Audit(action = "Создать цель")
     @LogExecutionTime
-    public void createGoal(long userId, String name, double targetAmount) {
+    public Goal createGoal(long userId, String name, double targetAmount) {
         if (targetAmount <= 0) {
             throw new IllegalArgumentException("Цель должна быть положительной.");
         }
         Goal goal = new Goal(userId, name, targetAmount);
         goalRepository.save(goal);
+        return goal;
     }
 
     /**

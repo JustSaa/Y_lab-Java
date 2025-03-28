@@ -7,6 +7,7 @@ import homework_1.domain.TransactionType;
 import homework_1.domain.Category;
 import homework_1.repositories.TransactionRepository;
 import homework_1.services.AnalyticsService;
+import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.Map;
@@ -15,6 +16,7 @@ import java.util.stream.Collectors;
 /**
  * Реализация сервиса аналитики финансов.
  */
+@Service
 public class AnalyticsServiceImpl implements AnalyticsService {
 
     private final TransactionRepository transactionRepository;

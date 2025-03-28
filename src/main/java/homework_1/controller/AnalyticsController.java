@@ -1,83 +1,52 @@
 package homework_1.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import homework_1.config.ServiceFactory;
-import homework_1.handler.AnalyticsRequestHandler;
 import homework_1.services.AnalyticsService;
+import jakarta.validation.constraints.Min;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.web.bind.annotation.*;
 
-import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.*;
-
-import java.io.IOException;
-import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.Map;
 
-@WebServlet("/api/analytics/*")
-public class AnalyticsController extends HttpServlet {
+@RestController
+@RequestMapping("/api/analytics")
+public class AnalyticsController {
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
-    private final AnalyticsRequestHandler requestHandler;
+    private final AnalyticsService analyticsService;
 
-    public AnalyticsController() {
-        try {
-            AnalyticsService analyticsService = ServiceFactory.getInstance().getAnalyticsService();
-            this.requestHandler = new AnalyticsRequestHandler(analyticsService);
-        } catch (SQLException e) {
-            throw new RuntimeException("Ошибка при создании AnalyticsController: невозможно получить AnalyticsService", e);
-        }
+    public AnalyticsController(AnalyticsService analyticsService) {
+        this.analyticsService = analyticsService;
     }
 
-    public AnalyticsController(AnalyticsRequestHandler requestHandler) {
-        this.requestHandler = requestHandler;
+    @GetMapping("/{userId}/income")
+    public Map<String, Double> getIncome(
+            @PathVariable @Min(1) long userId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end) {
+
+        double income = analyticsService.getTotalIncome(userId, start.toString(), end.toString());
+        return Map.of("income", income);
     }
 
-    @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        String[] parts = getPathParts(req);
-        if (parts == null) {
-            sendErrorResponse(resp, HttpServletResponse.SC_BAD_REQUEST, "Неверный путь запроса");
-            return;
-        }
+    @GetMapping("/{userId}/expenses")
+    public Map<String, Double> getExpenses(
+            @PathVariable @Min(1) long userId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end) {
 
-        long userId = parseUserId(parts[1], resp);
-        if (userId == -1) return;
-
-        String action = parts[2];
-        String start = req.getParameter("start");
-        String end = req.getParameter("end");
-
-        try {
-            switch (action) {
-                case "income" -> requestHandler.handleIncomeRequest(userId, start, end, resp);
-                case "expenses" -> requestHandler.handleExpensesRequest(userId, start, end, resp);
-                case "categories" -> requestHandler.handleCategoriesRequest(userId, resp);
-                case "report" -> requestHandler.handleReportRequest(userId, resp);
-                default -> requestHandler.handleUnknownAction(action, resp);
-            }
-        } catch (Exception e) {
-            sendErrorResponse(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
-        }
+        double expenses = analyticsService.getTotalExpenses(userId, start.toString(), end.toString());
+        return Map.of("expenses", expenses);
     }
 
-    private String[] getPathParts(HttpServletRequest req) {
-        String pathInfo = req.getPathInfo();
-        if (pathInfo == null || pathInfo.split("/").length < 3) {
-            return null;
-        }
-        return pathInfo.split("/");
+    @GetMapping("/{userId}/categories")
+    public Map<String, String> getCategoryReport(@PathVariable @Min(1) long userId) {
+        String report = analyticsService.analyzeExpensesByCategory(userId);
+        return Map.of("categoryReport", report);
     }
 
-    private long parseUserId(String userIdStr, HttpServletResponse resp) throws IOException {
-        try {
-            return Long.parseLong(userIdStr);
-        } catch (NumberFormatException e) {
-            sendErrorResponse(resp, HttpServletResponse.SC_BAD_REQUEST, "userId должен быть числом");
-            return -1;
-        }
-    }
-
-    private void sendErrorResponse(HttpServletResponse resp, int status, String message) throws IOException {
-        resp.setStatus(status);
-        objectMapper.writeValue(resp.getOutputStream(), Map.of("error", message));
+    @GetMapping("/{userId}/report")
+    public Map<String, String> getFullReport(@PathVariable @Min(1) long userId) {
+        String report = analyticsService.generateFinancialReport(userId);
+        return Map.of("report", report);
     }
 }

@@ -14,7 +14,7 @@ import java.util.Properties;
 
 @Configuration
 @EnableWebMvc
-@ComponentScan("homework_1")
+@ComponentScan({"homework_1", "org.springdoc"})
 public class AppConfig implements WebMvcConfigurer {
 
     @Bean

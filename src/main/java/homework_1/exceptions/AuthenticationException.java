@@ -1,4 +1,4 @@
-package homework_1.common.exceptions;
+package homework_1.exceptions;
 
 /**
  * Исключение при ошибках авторизации.

@@ -4,9 +4,10 @@ import homework_1.aspect.Audit;
 import homework_1.aspect.LogExecutionTime;
 import homework_1.domain.UserRole;
 import homework_1.repositories.UserRepository;
-import homework_1.common.exceptions.AuthenticationException;
+import homework_1.exceptions.AuthenticationException;
 import homework_1.domain.User;
 import homework_1.services.AuthService;
+import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 import java.util.List;
@@ -14,6 +15,7 @@ import java.util.List;
 /**
  * Реализация сервиса авторизации.
  */
+@Service
 public class AuthServiceImpl implements AuthService {
 
     private final UserRepository userRepository;

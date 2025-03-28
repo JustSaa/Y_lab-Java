@@ -1,86 +1,46 @@
 package homework_1.controller;
 
-import homework_1.config.ServiceFactory;
 import homework_1.domain.Budget;
 import homework_1.dto.SetBudgetDto;
 import homework_1.services.BudgetService;
-import homework_1.utils.ControllerUtil;
-import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.*;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
-import java.io.IOException;
-import java.sql.SQLException;
 import java.util.Map;
 import java.util.Optional;
 
-@WebServlet("/api/budget/*")
-public class BudgetController extends HttpServlet {
+@RestController
+@RequestMapping("/api/budget")
+public class BudgetController {
+
     private final BudgetService budgetService;
 
     public BudgetController(BudgetService budgetService) {
         this.budgetService = budgetService;
     }
 
-    public BudgetController() {
-        try {
-            this.budgetService = ServiceFactory.getInstance().getBudgetService();
-        } catch (SQLException e) {
-            throw new RuntimeException("Ошибка при создании BudgetController: невозможно получить budgetService", e);
-        }
+    @PostMapping
+    public ResponseEntity<Map<String, String>> setBudget(@Valid @RequestBody SetBudgetDto dto) {
+        budgetService.setUserBudget(dto.getUserId(), dto.getLimit());
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(Map.of("message", "Бюджет установлен"));
     }
 
-    @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        SetBudgetDto dto = ControllerUtil.readRequest(req, SetBudgetDto.class, resp);
-        if (dto == null) {
-            return;
-        }
-
-        try {
-            budgetService.setUserBudget(dto.getUserId(), dto.getLimit());
-            ControllerUtil.writeResponse(resp, HttpServletResponse.SC_CREATED, Map.of("message", "Бюджет установлен"));
-        } catch (IllegalArgumentException e) {
-            ControllerUtil.writeError(resp, HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
-        }
-    }
-
-    @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        String path = Optional.ofNullable(req.getPathInfo()).orElse("").trim();
-
-        if (path.isEmpty() || path.equals("/")) {
-            ControllerUtil.writeError(resp, HttpServletResponse.SC_BAD_REQUEST, "userId обязателен");
-            return;
-        }
-
-        String[] parts = path.substring(1).split("/");
-
-        try {
-            long userId = Long.parseLong(parts[0]);
-            String action = (parts.length > 1) ? parts[1] : "";
-
-            switch (action) {
-                case "exceeded" -> handleCheckExceeded(resp, userId);
-                case "" -> handleGetBudget(resp, userId);
-                default ->
-                        ControllerUtil.writeError(resp, HttpServletResponse.SC_BAD_REQUEST, "Неизвестный путь запроса: " + path);
-            }
-        } catch (NumberFormatException e) {
-            ControllerUtil.writeError(resp, HttpServletResponse.SC_BAD_REQUEST, "userId должен быть числом");
-        }
-    }
-
-    private void handleGetBudget(HttpServletResponse resp, long userId) throws IOException {
+    @GetMapping("/{userId}")
+    public ResponseEntity<?> getBudget(@PathVariable @Min(1) long userId) {
         Optional<Budget> budget = budgetService.getUserBudget(userId);
-        if (budget.isPresent()) {
-            ControllerUtil.writeResponse(resp, HttpServletResponse.SC_OK, budget.get());
-        } else {
-            ControllerUtil.writeError(resp, HttpServletResponse.SC_NOT_FOUND, "Бюджет не найден");
-        }
+        return budget
+                .<ResponseEntity<?>>map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("error", "Бюджет не найден")));
     }
 
-    private void handleCheckExceeded(HttpServletResponse resp, long userId) throws IOException {
+    @GetMapping("/{userId}/exceeded")
+    public ResponseEntity<Map<String, Boolean>> isBudgetExceeded(@PathVariable @Min(1) long userId) {
         boolean exceeded = budgetService.isBudgetExceeded(userId);
-        ControllerUtil.writeResponse(resp, HttpServletResponse.SC_OK, Map.of("budgetExceeded", exceeded));
+        return ResponseEntity.ok(Map.of("budgetExceeded", exceeded));
     }
 }

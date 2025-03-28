@@ -5,10 +5,12 @@ import homework_1.aspect.LogExecutionTime;
 import homework_1.domain.Notification;
 import homework_1.repositories.NotificationRepository;
 import homework_1.services.NotificationService;
+import org.springframework.stereotype.Service;
 
 /**
  * Реализация сервиса уведомлений (консольный вывод).
  */
+@Service
 public class NotificationServiceImpl implements NotificationService {
 
     private final NotificationRepository repository;

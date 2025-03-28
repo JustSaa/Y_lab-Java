@@ -1,7 +1,7 @@
 package homework_1.services;
 
 import homework_1.domain.User;
-import homework_1.common.exceptions.AuthenticationException;
+import homework_1.exceptions.AuthenticationException;
 import homework_1.domain.UserRole;
 
 import java.util.List;

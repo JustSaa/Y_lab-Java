@@ -15,6 +15,7 @@ import java.util.Properties;
 @Configuration
 @EnableWebMvc
 @ComponentScan({"homework_1", "org.springdoc"})
+@EnableAspectJAutoProxy
 public class AppConfig implements WebMvcConfigurer {
 
     @Bean

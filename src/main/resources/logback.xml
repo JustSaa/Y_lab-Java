@@ -16,11 +16,4 @@
         <appender-ref ref="CONSOLE"/>
     </root>
 
-    <!-- Твой проект (если хочешь видеть логи только своего пакета — можно настроить) -->
-    <logger name="homework_1" level="DEBUG"/>
-
-    <!-- Hibernate SQL, если используешь -->
-    <logger name="org.hibernate.SQL" level="DEBUG"/>
-    <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="TRACE"/>
-
 </configuration>

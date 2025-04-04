@@ -8,12 +8,14 @@ import homework_1.domain.TransactionType;
 import homework_1.repositories.BudgetRepository;
 import homework_1.repositories.TransactionRepository;
 import homework_1.services.BudgetService;
+import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
 /**
  * Реализация сервиса управления бюджетом.
  */
+@Service
 public class BudgetServiceImpl implements BudgetService {
 
     private final BudgetRepository budgetRepository;

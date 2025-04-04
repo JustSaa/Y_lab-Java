@@ -5,245 +5,159 @@ import homework_1.domain.UserRole;
 import homework_1.repositories.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Repository;
 
+import javax.sql.DataSource;
 import java.sql.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
-/**
- * Реализация {@link UserRepository} для работы с пользователями
- * с использованием JDBC и базы данных PostgreSQL.
- */
+@Repository
 public class JdbcUserRepository implements UserRepository {
-    private static final Logger logger = LoggerFactory.getLogger(JdbcUserRepository.class);
+    private static final Logger log = LoggerFactory.getLogger(JdbcUserRepository.class);
 
-    private static final String SAVE = """
+    private static final String SQL_INSERT = """
             INSERT INTO finance.users (name, email, password, user_role, is_blocked)
-            VALUES (?, ?, ?, ?, ?)
-            RETURNING id
+            VALUES (?, ?, ?, ?, ?) RETURNING id
             """;
-    private static final String FIND_BY_EMAIL = "SELECT * FROM finance.users WHERE email = ?";
-    private static final String FIND_BY_ALL = "SELECT * FROM finance.users";
-    private static final String DELETE = "DELETE FROM finance.users WHERE email = ?";
-    private static final String UPDATE = """
+
+    private static final String SQL_SELECT_BY_EMAIL = "SELECT * FROM finance.users WHERE email = ?";
+    private static final String SQL_SELECT_ALL = "SELECT * FROM finance.users";
+    private static final String SQL_DELETE_BY_EMAIL = "DELETE FROM finance.users WHERE email = ?";
+    private static final String SQL_UPDATE = """
             UPDATE finance.users
             SET name = ?, password = ?, user_role = ?, is_blocked = ?, email = ?
             WHERE id = ?
             """;
-    private static final String BLOCK_USER = "UPDATE finance.users SET is_blocked = TRUE WHERE email = ?";
 
+    private static final String SQL_BLOCK_USER = "UPDATE finance.users SET is_blocked = TRUE WHERE email = ?";
 
-    private final Connection connection;
+    private final DataSource dataSource;
 
-    /**
-     * Конструктор репозитория пользователей.
-     *
-     * @param connection объект {@link Connection} для работы с базой данных.
-     */
-    public JdbcUserRepository(Connection connection) {
-        this.connection = connection;
+    public JdbcUserRepository(DataSource dataSource) {
+        this.dataSource = dataSource;
     }
 
-    /**
-     * Сохраняет нового пользователя в базе данных.
-     *
-     * @param user объект {@link User}, содержащий данные пользователя.
-     * @throws RuntimeException если произошла ошибка при сохранении в БД.
-     */
     @Override
     public void save(User user) {
-        try {
-            connection.setAutoCommit(false);
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(SQL_INSERT)) {
 
-            try (PreparedStatement stmt = connection.prepareStatement(SAVE, Statement.RETURN_GENERATED_KEYS)) {
-                stmt.setString(1, user.getName());
-                stmt.setString(2, user.getEmail());
-                stmt.setString(3, user.getPassword());
-                stmt.setString(4, user.getRole().name());
-                stmt.setBoolean(5, user.isBlocked());
+            stmt.setString(1, user.getName());
+            stmt.setString(2, user.getEmail());
+            stmt.setString(3, user.getPassword());
+            stmt.setString(4, user.getRole().name());
+            stmt.setBoolean(5, user.isBlocked());
 
-                stmt.executeUpdate();
-
-                try (ResultSet rs = stmt.getGeneratedKeys()) {
-                    if (rs.next()) {
-                        user.setId(rs.getLong("id"));
-                    }
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    user.setId(rs.getLong("id"));
+                    log.info("Пользователь сохранён: {}", user);
                 }
             }
 
-            connection.commit();
         } catch (SQLException e) {
-            try {
-                connection.rollback();
-                logger.error("Ошибка сохранения пользователя. Транзакция откатилась.", e);
-                throw new RuntimeException("Ошибка сохранения пользователя", e);
-            } catch (SQLException rollbackEx) {
-                throw new RuntimeException("Ошибка при откате транзакции", rollbackEx);
-            }
-        } finally {
-            try {
-                connection.setAutoCommit(true);
-            } catch (SQLException e) {
-                logger.error("Ошибка при включении autoCommit", e);
-            }
+            log.error("Ошибка при сохранении пользователя: {}", user, e);
+            throw new RuntimeException("Ошибка сохранения пользователя", e);
         }
     }
 
-    /**
-     * Ищет пользователя по email.
-     *
-     * @param email email пользователя.
-     * @return {@link Optional} с объектом {@link User}, если пользователь найден, иначе пустой {@link Optional}.
-     * @throws RuntimeException если произошла ошибка при выполнении запроса.
-     */
     @Override
     public Optional<User> findByEmail(String email) {
-        try (PreparedStatement stmt = connection.prepareStatement(FIND_BY_EMAIL)) {
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(SQL_SELECT_BY_EMAIL)) {
+
             stmt.setString(1, email);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                return Optional.of(mapUser(rs));
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    User user = mapUser(rs);
+                    log.debug("Пользователь найден по email {}: {}", email, user);
+                    return Optional.of(user);
+                }
+                return Optional.empty();
             }
-            return Optional.empty();
+
         } catch (SQLException e) {
-            throw new RuntimeException("Ошибка поиска пользователя по email", e);
+            log.error("Ошибка поиска пользователя по email={}", email, e);
+            throw new RuntimeException("Ошибка поиска пользователя", e);
         }
     }
 
-    /**
-     * Возвращает список всех пользователей.
-     *
-     * @return список пользователей.
-     * @throws RuntimeException если произошла ошибка при выполнении запроса.
-     */
     @Override
     public List<User> findAll() {
-        try (PreparedStatement stmt = connection.prepareStatement(FIND_BY_ALL);
+        List<User> users = new ArrayList<>();
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(SQL_SELECT_ALL);
              ResultSet rs = stmt.executeQuery()) {
 
-            List<User> users = new ArrayList<>();
             while (rs.next()) {
                 users.add(mapUser(rs));
             }
+            log.debug("Найдено пользователей: {}", users.size());
             return users;
+
         } catch (SQLException e) {
-            throw new RuntimeException("Ошибка получения списка пользователей", e);
+            log.error("Ошибка получения всех пользователей", e);
+            throw new RuntimeException("Ошибка получения пользователей", e);
         }
     }
 
-    /**
-     * Удаляет пользователя по email.
-     *
-     * @param email email пользователя.
-     * @throws RuntimeException если произошла ошибка при удалении из БД.
-     */
     @Override
     public void delete(String email) {
-        try {
-            connection.setAutoCommit(false);
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(SQL_DELETE_BY_EMAIL)) {
 
-            try (PreparedStatement stmt = connection.prepareStatement(DELETE)) {
-                stmt.setString(1, email);
-                stmt.executeUpdate();
-            }
+            stmt.setString(1, email);
+            stmt.executeUpdate();
+            log.info("Пользователь с email={} удалён", email);
 
-            connection.commit();
         } catch (SQLException e) {
-            try {
-                connection.rollback();
-                logger.error("Ошибка удаления пользователя. Транзакция откатилась.", e);
-                throw new RuntimeException("Ошибка удаления пользователя", e);
-            } catch (SQLException rollbackEx) {
-                throw new RuntimeException("Ошибка при откате транзакции", rollbackEx);
-            }
-        } finally {
-            try {
-                connection.setAutoCommit(true);
-            } catch (SQLException e) {
-                logger.error("Ошибка при включении autoCommit", e);
-            }
+            log.error("Ошибка при удалении пользователя: {}", email, e);
+            throw new RuntimeException("Ошибка удаления пользователя", e);
         }
     }
 
-    /**
-     * Обновляет данные пользователя.
-     *
-     * @param user объект {@link User} с обновленными значениями.
-     * @throws RuntimeException если произошла ошибка при обновлении в БД.
-     */
     @Override
     public void update(User user) {
-        try {
-            connection.setAutoCommit(false);
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(SQL_UPDATE)) {
 
-            try (PreparedStatement stmt = connection.prepareStatement(UPDATE)) {
-                stmt.setString(1, user.getName());
-                stmt.setString(2, user.getPassword());
-                stmt.setString(3, user.getRole().name());
-                stmt.setBoolean(4, user.isBlocked());
-                stmt.setString(5, user.getEmail());
-                stmt.setLong(6, user.getId());
+            stmt.setString(1, user.getName());
+            stmt.setString(2, user.getPassword());
+            stmt.setString(3, user.getRole().name());
+            stmt.setBoolean(4, user.isBlocked());
+            stmt.setString(5, user.getEmail());
+            stmt.setLong(6, user.getId());
 
-                int rowsUpdated = stmt.executeUpdate();
-                if (rowsUpdated == 0) {
-                    throw new RuntimeException("Пользователь с email " + user.getEmail() + " не найден");
-                }
+            int rows = stmt.executeUpdate();
+            if (rows == 0) {
+                throw new RuntimeException("Пользователь не найден для обновления: " + user.getEmail());
             }
 
-            connection.commit();
+            log.info("Пользователь обновлён: {}", user);
+
         } catch (SQLException e) {
-            try {
-                connection.rollback();
-                logger.error("Ошибка обновления пользователя. Транзакция откатилась.", e);
-                throw new RuntimeException("Ошибка обновления пользователя", e);
-            } catch (SQLException rollbackEx) {
-                throw new RuntimeException("Ошибка при откате транзакции", rollbackEx);
-            }
-        } finally {
-            try {
-                connection.setAutoCommit(true);
-            } catch (SQLException e) {
-                logger.error("Ошибка при включении autoCommit", e);
-            }
+            log.error("Ошибка при обновлении пользователя: {}", user, e);
+            throw new RuntimeException("Ошибка обновления пользователя", e);
         }
     }
 
-    /**
-     * Блокирует пользователя по email.
-     *
-     * @param email email пользователя.
-     * @throws RuntimeException если произошла ошибка при обновлении в БД.
-     */
     @Override
     public void blockUser(String email) {
-        try {
-            connection.setAutoCommit(false);
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(SQL_BLOCK_USER)) {
 
-            try (PreparedStatement stmt = connection.prepareStatement(BLOCK_USER)) {
-                stmt.setString(1, email);
-                stmt.executeUpdate();
-            }
+            stmt.setString(1, email);
+            stmt.executeUpdate();
+            log.info("Пользователь заблокирован: {}", email);
 
-            connection.commit();
         } catch (SQLException e) {
-            try {
-                connection.rollback();
-                logger.error("Ошибка блокировки пользователя. Транзакция откатилась.", e);
-                throw new RuntimeException("Ошибка блокировки пользователя", e);
-            } catch (SQLException rollbackEx) {
-                throw new RuntimeException("Ошибка при откате транзакции", rollbackEx);
-            }
-        } finally {
-            try {
-                connection.setAutoCommit(true);
-            } catch (SQLException e) {
-                logger.error("Ошибка при включении autoCommit", e);
-            }
+            log.error("Ошибка при блокировке пользователя: {}", email, e);
+            throw new RuntimeException("Ошибка блокировки пользователя", e);
         }
     }
 
-    /**
-     * Метод для маппинга ResultSet на сущность User.
-     */
     private User mapUser(ResultSet rs) throws SQLException {
         return new User(
                 rs.getLong("id"),

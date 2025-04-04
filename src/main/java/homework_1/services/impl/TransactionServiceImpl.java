@@ -10,6 +10,7 @@ import homework_1.repositories.TransactionRepository;
 import homework_1.services.BudgetService;
 import homework_1.services.NotificationService;
 import homework_1.services.TransactionService;
+import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.Collections;
@@ -18,6 +19,7 @@ import java.util.List;
 /**
  * Реализация сервиса управления транзакциями.
  */
+@Service
 public class TransactionServiceImpl implements TransactionService {
 
     private final TransactionRepository transactionRepository;

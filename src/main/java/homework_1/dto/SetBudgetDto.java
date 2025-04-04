@@ -9,8 +9,7 @@ public class SetBudgetDto {
     @NotNull(message = "userId обязателен")
     private Long userId;
 
-    @Min(value = 1, message = "Лимит бюджета должен быть положительным")
-    @Positive(message = "limit должен быть больше 0")
+    @Positive(message = "Лимит бюджета должен быть положительным")
     private double limit;
 
     public SetBudgetDto() {

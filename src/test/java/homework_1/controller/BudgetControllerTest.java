@@ -2,148 +2,83 @@ package homework_1.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import homework_1.domain.Budget;
-import homework_1.dto.SetBudgetDto;
 import homework_1.services.BudgetService;
-import jakarta.servlet.ServletInputStream;
-import jakarta.servlet.ServletOutputStream;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import java.io.*;
-import java.nio.charset.StandardCharsets;
+import java.util.Map;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 class BudgetControllerTest {
-    private BudgetController controller;
+
+    private MockMvc mockMvc;
     private BudgetService budgetService;
-    private HttpServletRequest request;
-    private HttpServletResponse response;
     private ObjectMapper objectMapper;
-    private ByteArrayOutputStream outputStream;
 
     @BeforeEach
-    void setUp() throws Exception {
+    void setUp() {
         budgetService = mock(BudgetService.class);
-        controller = new BudgetController(budgetService);
-
-        request = mock(HttpServletRequest.class);
-        response = mock(HttpServletResponse.class);
+        BudgetController controller = new BudgetController(budgetService);
+        mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
         objectMapper = new ObjectMapper();
-        outputStream = new ByteArrayOutputStream();
-
-        ServletOutputStream servletOutputStream = new ServletOutputStream() {
-            @Override public boolean isReady() { return true; }
-            @Override public void setWriteListener(jakarta.servlet.WriteListener writeListener) {}
-            @Override public void write(int b) { outputStream.write(b); }
-        };
-
-        when(response.getOutputStream()).thenReturn(servletOutputStream);
     }
 
     @Test
-    void testSetBudget_Success() throws Exception {
-        SetBudgetDto dto = new SetBudgetDto(1L, 5000.0);
+    void setBudget_ShouldReturnCreated() throws Exception {
+        Map<String, Object> dto = Map.of("userId", 1L, "limit", 1000.0);
 
-        when(request.getInputStream()).thenReturn(toServletInputStream(dto));
+        mockMvc.perform(post("/api/budget")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.message").value("Бюджет установлен"));
 
-        controller.doPost(request, response);
-
-        verify(budgetService).setUserBudget(1L, 5000.0);
-        verify(response).setStatus(HttpServletResponse.SC_CREATED);
-        assertTrue(outputStream.toString(StandardCharsets.UTF_8).contains("Бюджет установлен"));
+        verify(budgetService).setUserBudget(1L, 1000.0);
     }
 
     @Test
-    void testSetBudget_ServiceThrowsException() throws Exception {
-        SetBudgetDto dto = new SetBudgetDto(1L, 5000.0);
-
-        when(request.getInputStream()).thenReturn(toServletInputStream(dto));
-        doThrow(new IllegalArgumentException("Ошибка сервиса")).when(budgetService).setUserBudget(anyLong(), anyDouble());
-
-        controller.doPost(request, response);
-
-        verify(response).setStatus(HttpServletResponse.SC_BAD_REQUEST);
-        assertTrue(outputStream.toString(StandardCharsets.UTF_8).contains("Ошибка сервиса"));
-    }
-
-    @Test
-    void testGetBudget_Success() throws Exception {
-        Budget budget = new Budget(1L, 5000.0);
-        when(request.getPathInfo()).thenReturn("/1");
+    void getBudget_ShouldReturnBudget_WhenExists() throws Exception {
+        Budget budget = new Budget(1L, 1500.0);
         when(budgetService.getUserBudget(1L)).thenReturn(Optional.of(budget));
 
-        controller.doGet(request, response);
-
-        verify(response).setStatus(HttpServletResponse.SC_OK);
-        assertTrue(outputStream.toString(StandardCharsets.UTF_8).contains("5000.0"));
+        mockMvc.perform(get("/api/budget/1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.userId").value(1))
+                .andExpect(jsonPath("$.limit").value(1500.0));
     }
 
     @Test
-    void testGetBudget_NotFound() throws Exception {
-        when(request.getPathInfo()).thenReturn("/1");
+    void getBudget_ShouldReturnNotFound_WhenNotExists() throws Exception {
         when(budgetService.getUserBudget(1L)).thenReturn(Optional.empty());
 
-        controller.doGet(request, response);
-
-        verify(response).setStatus(HttpServletResponse.SC_NOT_FOUND);
-        assertTrue(outputStream.toString(StandardCharsets.UTF_8).contains("Бюджет не найден"));
+        mockMvc.perform(get("/api/budget/1"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("Бюджет не найден"));
     }
 
     @Test
-    void testGetBudget_InvalidUserId() throws Exception {
-        when(request.getPathInfo()).thenReturn("/abc"); // Некорректный userId
-
-        controller.doGet(request, response);
-
-        verify(response).setStatus(HttpServletResponse.SC_BAD_REQUEST);
-        assertTrue(outputStream.toString(StandardCharsets.UTF_8).contains("userId должен быть числом"));
-    }
-
-    @Test
-    void testIsBudgetExceeded_Success() throws Exception {
-        when(request.getPathInfo()).thenReturn("/1/exceeded");
+    void isBudgetExceeded_ShouldReturnTrue() throws Exception {
         when(budgetService.isBudgetExceeded(1L)).thenReturn(true);
 
-        controller.doGet(request, response);
-
-        verify(response).setStatus(HttpServletResponse.SC_OK);
-        assertTrue(outputStream.toString(StandardCharsets.UTF_8).contains("budgetExceeded"));
+        mockMvc.perform(get("/api/budget/1/exceeded"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.budgetExceeded").value(true));
     }
 
     @Test
-    void testIsBudgetExceeded_InvalidUserId() throws Exception {
-        when(request.getPathInfo()).thenReturn("/abc/exceeded"); // Некорректный userId
+    void isBudgetExceeded_ShouldReturnFalse() throws Exception {
+        when(budgetService.isBudgetExceeded(1L)).thenReturn(false);
 
-        controller.doGet(request, response);
-
-        verify(response).setStatus(HttpServletResponse.SC_BAD_REQUEST);
-        assertTrue(outputStream.toString(StandardCharsets.UTF_8).contains("userId должен быть числом"));
-    }
-
-    @Test
-    void testInvalidPath() throws Exception {
-        when(request.getPathInfo()).thenReturn("/1/unknown");
-
-        controller.doGet(request, response);
-
-        verify(response).setStatus(HttpServletResponse.SC_BAD_REQUEST);
-        assertTrue(outputStream.toString(StandardCharsets.UTF_8).contains("Неизвестный путь запроса"));
-    }
-
-    private ServletInputStream toServletInputStream(Object dto) throws IOException {
-        String json = objectMapper.writeValueAsString(dto);
-        ByteArrayInputStream byteStream = new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8));
-
-        return new ServletInputStream() {
-            @Override public int read() { return byteStream.read(); }
-            @Override public boolean isFinished() { return byteStream.available() == 0; }
-            @Override public boolean isReady() { return true; }
-            @Override public void setReadListener(jakarta.servlet.ReadListener readListener) {}
-        };
+        mockMvc.perform(get("/api/budget/1/exceeded"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.budgetExceeded").value(false));
     }
 }

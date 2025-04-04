@@ -2,7 +2,11 @@ package homework_1.repositories.jdbc;
 
 import homework_1.domain.Goal;
 import homework_1.repositories.GoalRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Repository;
 
+import javax.sql.DataSource;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -12,34 +16,28 @@ import java.util.Optional;
  * Реализация репозитория {@link GoalRepository} для работы с финансовыми целями пользователей
  * с использованием JDBC и базы данных PostgreSQL.
  */
+@Repository
 public class JdbcGoalRepository implements GoalRepository {
-    private static final String SAVE_GOAL_INTO = """
-            INSERT INTO finance.goals (id, user_id, name, target_amount, current_amount)
-            VALUES (nextval('finance.goals_seq'), ?, ?, ?, ?)
-            """;
-    private static final String SELECT_GOALS_BY_ID = "SELECT * FROM finance.goals WHERE id = ?";
-    private static final String FIND_BY_NAME = "SELECT id, user_id, name, target_amount, current_amount FROM finance.goals WHERE name = ?";
-    private static final String FIND_BY_USERID = """
-            SELECT id, user_id, name, target_amount, current_amount
-            FROM finance.goals
-            WHERE user_id = ?
-            """;
-    private static final String UPDATE = """
-            UPDATE finance.goals
-            SET target_amount = ?, current_amount = ?
-            WHERE name = ?
-            """;
-    private static final String DELETE = "DELETE FROM finance.goals WHERE id = ?";
+    private static final Logger log = LoggerFactory.getLogger(JdbcGoalRepository.class);
 
-    private final Connection connection;
+    private static final String SQL_INSERT = """
+                INSERT INTO finance.goals (id, user_id, name, target_amount, current_amount)
+                VALUES (nextval('finance.goals_seq'), ?, ?, ?, ?)
+            """;
+    private static final String SQL_SELECT_BY_ID = "SELECT * FROM finance.goals WHERE id = ?";
+    private static final String SQL_SELECT_BY_NAME = "SELECT * FROM finance.goals WHERE name = ?";
+    private static final String SQL_SELECT_BY_USER = "SELECT * FROM finance.goals WHERE user_id = ?";
+    private static final String SQL_UPDATE = """
+                UPDATE finance.goals
+                SET target_amount = ?, current_amount = ?
+                WHERE name = ?
+            """;
+    private static final String SQL_DELETE = "DELETE FROM finance.goals WHERE id = ?";
 
-    /**
-     * Конструктор репозитория для работы с финансовыми целями.
-     *
-     * @param connection объект {@link Connection} для работы с базой данных.
-     */
-    public JdbcGoalRepository(Connection connection) {
-        this.connection = connection;
+    private final DataSource dataSource;
+
+    public JdbcGoalRepository(DataSource dataSource) {
+        this.dataSource = dataSource;
     }
 
     /**
@@ -50,31 +48,24 @@ public class JdbcGoalRepository implements GoalRepository {
      */
     @Override
     public void save(Goal goal) {
-        try {
-            connection.setAutoCommit(false);
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(SQL_INSERT)) {
 
-            try (PreparedStatement stmt = connection.prepareStatement(SAVE_GOAL_INTO)) {
-                stmt.setLong(1, goal.getUserId());
-                stmt.setString(2, goal.getName());
-                stmt.setDouble(3, goal.getTargetAmount());
-                stmt.setDouble(4, goal.getCurrentAmount());
-                stmt.executeUpdate();
+            stmt.setLong(1, goal.getUserId());
+            stmt.setString(2, goal.getName());
+            stmt.setDouble(3, goal.getTargetAmount());
+            stmt.setDouble(4, goal.getCurrentAmount());
+
+            int rows = stmt.executeUpdate();
+            if (rows == 0) {
+                log.warn("Не удалось сохранить цель: {}", goal);
+                throw new SQLException("Ошибка вставки цели");
             }
 
-            connection.commit();
+            log.info("Цель сохранена: {}", goal);
         } catch (SQLException e) {
-            try {
-                connection.rollback();
-                throw new RuntimeException("Ошибка при сохранении цели. Транзакция откатилась.", e);
-            } catch (SQLException rollbackEx) {
-                throw new RuntimeException("Ошибка при откате транзакции", rollbackEx);
-            }
-        } finally {
-            try {
-                connection.setAutoCommit(true);
-            } catch (SQLException e) {
-                throw new RuntimeException("Ошибка при включении autoCommit", e);
-            }
+            log.error("Ошибка сохранения цели: {}", goal, e);
+            throw new RuntimeException("Ошибка сохранения цели", e);
         }
     }
 
@@ -87,17 +78,23 @@ public class JdbcGoalRepository implements GoalRepository {
      */
     @Override
     public Optional<Goal> findById(long goalId) {
-        try (PreparedStatement stmt = connection.prepareStatement(SELECT_GOALS_BY_ID)) {
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(SQL_SELECT_BY_ID)) {
+
             stmt.setLong(1, goalId);
-            try (var rs = stmt.executeQuery()) {
+            try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    return Optional.of(mapGoal(rs));
+                    Goal goal = mapGoal(rs);
+                    log.debug("Цель найдена по ID: {}", goal);
+                    return Optional.of(goal);
                 }
+                log.info("Цель не найдена по ID={}", goalId);
+                return Optional.empty();
             }
-        } catch (Exception e) {
-            throw new RuntimeException("Ошибка при поиске цели по ID: " + e.getMessage(), e);
+        } catch (SQLException e) {
+            log.error("Ошибка поиска цели по ID={}", goalId, e);
+            throw new RuntimeException("Ошибка поиска цели", e);
         }
-        return Optional.empty();
     }
 
     /**
@@ -109,18 +106,23 @@ public class JdbcGoalRepository implements GoalRepository {
      */
     @Override
     public Optional<Goal> findByName(String name) {
-        try (PreparedStatement stmt = connection.prepareStatement(FIND_BY_NAME)) {
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(SQL_SELECT_BY_NAME)) {
+
             stmt.setString(1, name);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    return Optional.of(mapGoal(rs));
+                    Goal goal = mapGoal(rs);
+                    log.debug("Цель найдена по имени: {}", goal);
+                    return Optional.of(goal);
                 }
+                log.info("Цель не найдена по имени={}", name);
+                return Optional.empty();
             }
         } catch (SQLException e) {
-            throw new RuntimeException("Ошибка при поиске цели по имени", e);
+            log.error("Ошибка поиска цели по имени={}", name, e);
+            throw new RuntimeException("Ошибка поиска цели", e);
         }
-
-        return Optional.empty();
     }
 
     /**
@@ -131,21 +133,22 @@ public class JdbcGoalRepository implements GoalRepository {
      * @throws SQLException если произошла ошибка при выполнении запроса.
      */
     @Override
-    public List<Goal> findByUserId(long userId) throws SQLException {
+    public List<Goal> findByUserId(long userId) {
         List<Goal> goals = new ArrayList<>();
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(SQL_SELECT_BY_USER)) {
 
-        try (PreparedStatement stmt = connection.prepareStatement(FIND_BY_USERID)) {
             stmt.setLong(1, userId);
-
-            try (var rs = stmt.executeQuery()) {
+            try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     goals.add(mapGoal(rs));
                 }
-            } catch (Exception e) {
-                throw new RuntimeException("Ошибка при получении списка целей: " + e.getMessage());
             }
-
+            log.debug("Найдено {} целей для userId={}", goals.size(), userId);
             return goals;
+        } catch (SQLException e) {
+            log.error("Ошибка получения целей для userId={}", userId, e);
+            throw new RuntimeException("Ошибка получения целей", e);
         }
     }
 
@@ -157,30 +160,23 @@ public class JdbcGoalRepository implements GoalRepository {
      */
     @Override
     public void update(Goal goal) {
-        try {
-            connection.setAutoCommit(false);
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(SQL_UPDATE)) {
 
-            try (PreparedStatement stmt = connection.prepareStatement(UPDATE)) {
-                stmt.setDouble(1, goal.getTargetAmount());
-                stmt.setDouble(2, goal.getCurrentAmount());
-                stmt.setString(3, goal.getName());
-                stmt.executeUpdate();
+            stmt.setDouble(1, goal.getTargetAmount());
+            stmt.setDouble(2, goal.getCurrentAmount());
+            stmt.setString(3, goal.getName());
+
+            int rows = stmt.executeUpdate();
+            if (rows == 0) {
+                log.warn("Цель не обновлена: {}", goal);
+                throw new SQLException("Цель не найдена для обновления");
             }
 
-            connection.commit();
-        } catch (Exception e) {
-            try {
-                connection.rollback();
-                throw new RuntimeException("Ошибка при обновлении цели. Транзакция откатилась.", e);
-            } catch (SQLException rollbackEx) {
-                throw new RuntimeException("Ошибка при откате транзакции", rollbackEx);
-            }
-        } finally {
-            try {
-                connection.setAutoCommit(true);
-            } catch (SQLException e) {
-                throw new RuntimeException("Ошибка при включении autoCommit", e);
-            }
+            log.info("Цель обновлена: {}", goal);
+        } catch (SQLException e) {
+            log.error("Ошибка при обновлении цели: {}", goal, e);
+            throw new RuntimeException("Ошибка обновления цели", e);
         }
     }
 
@@ -189,28 +185,19 @@ public class JdbcGoalRepository implements GoalRepository {
      */
     @Override
     public void delete(long goalId) {
-        try {
-            connection.setAutoCommit(false);
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(SQL_DELETE)) {
 
-            try (PreparedStatement stmt = connection.prepareStatement(DELETE)) {
-                stmt.setLong(1, goalId);
-                stmt.executeUpdate();
+            stmt.setLong(1, goalId);
+            int rows = stmt.executeUpdate();
+            if (rows == 0) {
+                log.warn("Цель не найдена для удаления. goalId={}", goalId);
+            } else {
+                log.info("Цель удалена: goalId={}", goalId);
             }
-
-            connection.commit();
-        } catch (Exception e) {
-            try {
-                connection.rollback();
-                throw new RuntimeException("Ошибка при удалении цели. Транзакция откатилась.", e);
-            } catch (SQLException rollbackEx) {
-                throw new RuntimeException("Ошибка при откате транзакции", rollbackEx);
-            }
-        } finally {
-            try {
-                connection.setAutoCommit(true);
-            } catch (SQLException e) {
-                throw new RuntimeException("Ошибка при включении autoCommit", e);
-            }
+        } catch (SQLException e) {
+            log.error("Ошибка при удалении цели goalId={}", goalId, e);
+            throw new RuntimeException("Ошибка удаления цели", e);
         }
     }
 

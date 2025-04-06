@@ -12,6 +12,11 @@ public class AdminActionDto {
     @NotBlank(message = "Email пользователя обязателен")
     private String userEmail;
 
+    public AdminActionDto(String adminEmail, String userEmail) {
+        this.adminEmail = adminEmail;
+        this.userEmail = userEmail;
+    }
+
     public String getAdminEmail() {
         return adminEmail;
     }

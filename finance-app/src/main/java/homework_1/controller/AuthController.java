@@ -1,15 +1,11 @@
 package homework_1.controller;
 
-import audit.aspect.annotation.Audit;
-import audit.aspect.annotation.LogExecutionTime;
 import homework_1.domain.User;
 import homework_1.dto.*;
-import homework_1.exceptions.AuthenticationException;
 import homework_1.mapper.UserMapper;
 import homework_1.services.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
-import org.mapstruct.factory.Mappers;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

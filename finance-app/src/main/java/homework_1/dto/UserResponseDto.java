@@ -9,10 +9,20 @@ public class UserResponseDto {
     private UserRole role;
     private boolean blocked;
 
+    public UserResponseDto() {
+    }
     public UserResponseDto(String name, String email, UserRole role) {
         this.name = name;
         this.email = email;
         this.role = role;
+    }
+
+    public UserResponseDto(long id, String name, String email, UserRole user, boolean b) {
+        this.id = id;
+        this.name = name;
+        this.email = email;
+        this.role = user;
+        this.blocked = b;
     }
 
     public Long getId() {

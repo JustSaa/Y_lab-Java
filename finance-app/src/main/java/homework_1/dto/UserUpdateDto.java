@@ -23,6 +23,14 @@ public class UserUpdateDto {
     @NotNull(message = "Роль обязательна")
     private UserRole newRole;
 
+    public UserUpdateDto(String oldEmail, String newName, String newEmail, String newPassword, UserRole user) {
+        this.oldEmail = oldEmail;
+        this.newName = newName;
+        this.newEmail = newEmail;
+        this.newPassword = newPassword;
+        this.newRole = user;
+    }
+
     public String getNewName() {
         return newName;
     }
